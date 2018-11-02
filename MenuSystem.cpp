@@ -1,6 +1,6 @@
 //C++ Boot Camp - Task 2 - 2018-19 
-//Name: 
-//Student number: 
+//Name: Gamze Dogan
+//Student number: b8037358
 
 #include "MenuSystem.h"
 
