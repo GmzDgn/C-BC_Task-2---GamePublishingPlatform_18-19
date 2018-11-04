@@ -24,6 +24,8 @@ private:
 
 	void list_all_users() const;
 
+	void add_user();
+
 	int run_login_screen();
 
 	int run_admin_user_menu();

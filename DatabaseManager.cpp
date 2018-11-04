@@ -24,29 +24,53 @@ DatabaseManager& DatabaseManager::instance()
 	return s_instance;
 }
 
-void DatabaseManager::load_data()
-{
-	// For test purposes I shall populate the database manually here.
-	// In your applications we want you to load data (and save) the contents of the database.
+void DatabaseManager::load_data(){
+	ifstream file;
+	string readFile, username, password, email, usertype;
+	file.open("listOfUsers.txt");
 
-	// add some admin users.
-	add_user(new AdminUser("davem", "12345", "d.r.moore@shu.ac.uk"));
-	add_user(new AdminUser("pascalev", "54321", "p.vacher@shu.ac.uk"));
+	if (file.is_open()) {
+		while (getline(file, readFile)) {
+			istringstream stream(readFile);
+			stream >> username >> password >> email >> usertype;
+			if (usertype == "admin") {
+				add_user(new AdminUser(username, password, email));
+			}
+			else {
+				add_user(new PlayerUser(username, password, email));
+			}
+		}
+		file.close();
+	} else {
+		cerr << "Couldn't open the file!";
+	}
 
-	// add some players
-	add_user(new PlayerUser("frank", "frank12345", "frank@unknown.com"));
-	add_user(new PlayerUser("jake", "jake12345", "jake@unknown.com"));
-	add_user(new PlayerUser("andrew", "andrew12345", "andrew@unknown.com"));
-	add_user(new PlayerUser("martin", "martin12345", "martin@unknown.com"));
+	//add_user(new AdminUser("pascalev", "54321", "p.vacher@shu.ac.uk"));
 
-	// add some games.
-	add_game(Game(4789, "Bounceback", "A platform puzzle game for PSP"));
-	add_game(Game(5246, "Piecefall", "A tetris like 3d puzzle game for PS4"));
+	//// add some players
+	//add_user(new PlayerUser("frank", "frank12345", "frank@unknown.com"));
+
+	//// add some games.
+	//add_game(Game(4789, "Bounceback", "A platform puzzle game for PSP"));
+	//add_game(Game(5246, "Piecefall", "A tetris like 3d puzzle game for PS4"));
 }
 
-void DatabaseManager::store_data()
+void DatabaseManager::store_data(UserBase::Username& user, string& pw, string& mail, string& type)
 {
-	// You need a mechinsm for storing data here
+	ofstream outFile;
+	outFile.open("listOfUsers.txt", ios::app);
+	string username = user;
+	string password = pw;
+	string email = mail;
+	string usertype = type;
+
+	if (!outFile) {
+		cerr << "Textfile doesn't exist!";
+	}
+	else {
+		outFile << username << ' ' << password << ' ' << email << "\n";
+		outFile.close();
+	}
 }
 
 void DatabaseManager::add_user(UserBase* pUser)
@@ -58,6 +82,17 @@ void DatabaseManager::add_user(UserBase* pUser)
 		m_users.insert(std::make_pair(pUser->get_username(), pUser));
 	}
 }
+
+bool DatabaseManager::find_email(const string& mail){
+	auto it = m_users.begin();
+	for (it; it != m_users.end(); ++it) {
+		if (it->second->get_email == mail) {
+			return true;
+		}
+	}
+	return false;
+}
+
 
 UserBase* DatabaseManager::find_user(const UserBase::Username& username)
 {

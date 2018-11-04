@@ -5,8 +5,15 @@
 
 #include "Game.h"
 #include "Users.h"
+#include "MenuSystem.h"
 
 #include <map>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+using namespace std;
 
 //--
 // DatabaseManager is the one central database for the whole system
@@ -22,10 +29,13 @@ public:
 	void load_data();
 
 	// Write all the data to storage.
-	void store_data();
+	void store_data(UserBase::Username& username, string& password, string& email, string& usertype);
 
 	// Adds a user to the db.
 	void add_user(UserBase* pUser);
+
+	// 
+	bool find_email(const string& mail);
 
 	// Finds a user by username, return nullptr if the user is not found.
 	UserBase* find_user(const UserBase::Username& username);
@@ -56,8 +66,8 @@ private:
 
 private:
 	// Types
-	using UserContainer = std::map<UserBase::Username, UserBase*>;
-	using GameContainer = std::map<Game::GameId, Game>;
+	using UserContainer = map<UserBase::Username, UserBase*>;
+	using GameContainer = map<Game::GameId, Game>;
 
 	UserContainer m_users;
 	GameContainer m_games;

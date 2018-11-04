@@ -78,7 +78,7 @@ int MenuSystem::run_admin_user_menu()
 		case '1': list_all_games(); break;
 		case '2': list_all_users(); break;
 		case '3': std::cout << "TODO\n"; break;
-		case '4': std::cout << "TODO\n"; break;
+		case '4': add_user(); break;
 		case 'q': result = -1; break;
 		default:  std::cout << "INAVLID OPTION\n"; break;
 		}
@@ -112,7 +112,7 @@ int MenuSystem::run_player_user_menu()
 		case '1': list_all_games(); break;
 		case '2': std::cout << "TODO\n"; break;
 		case '3': std::cout << "TODO\n"; break;
-		case '4': std::cout << "TODO\n"; break;
+		case '4':std::cout << "TODO\n"; break;
 		case 'q': result = -1; break;
 		default:  std::cout << "INAVLID OPTION\n"; break;
 		}
@@ -122,6 +122,31 @@ int MenuSystem::run_player_user_menu()
 	m_pUser = nullptr;
 
 	return 0;
+}
+
+void MenuSystem::add_user()  {
+	string username, password, email, usertype;
+	if (m_pUser->get_user_type() == UserTypeId::kAdminUser) {
+		cout << "Add a new user. Please enter a username: ";
+		cin >> username;
+		if (DatabaseManager::instance().find_user(username) == nullptr) {
+			cout << "Enter a password: ";
+			cin >> password;
+			cout << "Enter an email address: ";
+			cin >> email;
+			if (DatabaseManager::instance().find_email(email)) {
+				cout << "This email is already taken. Please choose another one.";
+				add_user();
+			}
+			cout << "Usertype: Admin or player? a/p";
+			cin >> usertype;
+		}
+		else {
+			cout << "This username is already taken. Please choose another one.";
+			add_user();
+		}
+		DatabaseManager::instance().store_data(username, password, email, usertype);
+	}
 }
 
 int MenuSystem::run_unknown_user_menu()
