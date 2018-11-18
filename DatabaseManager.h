@@ -28,8 +28,16 @@ public:
 	// Initialize the database from storage.
 	void load_data();
 
+	void load_data_ListUser();
+
+	void load_data_ListGame();
+
 	// Write all the data to storage.
-	void store_data(UserBase::Username& username, string& password, string& email, string& usertype);
+	void store_data();
+
+	void store_newUser(UserBase::Username& username, string& password, string& email, string& usertype);
+
+	void store_newGame(Game::GameId& id, string& gameTitle, string& description);
 
 	// Adds a user to the db.
 	void add_user(UserBase* pUser);
@@ -59,7 +67,7 @@ public:
 	}
 
 private:
-	// Constructors are private for singleton pattern.
+	// Constructors are private for singleton pattern.f
 	DatabaseManager();
 	~DatabaseManager();
 

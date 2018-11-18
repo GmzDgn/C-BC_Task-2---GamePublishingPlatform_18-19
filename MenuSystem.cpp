@@ -126,27 +126,34 @@ int MenuSystem::run_player_user_menu()
 
 void MenuSystem::add_user()  {
 	string username, password, email, usertype;
-	if (m_pUser->get_user_type() == UserTypeId::kAdminUser) {
-		cout << "Add a new user. Please enter a username: ";
-		cin >> username;
-		if (DatabaseManager::instance().find_user(username) == nullptr) {
-			cout << "Enter a password: ";
-			cin >> password;
-			cout << "Enter an email address: ";
-			cin >> email;
-			if (DatabaseManager::instance().find_email(email)) {
-				cout << "This email is already taken. Please choose another one.";
-				add_user();
+	//if (m_pUser->get_user_type() == UserTypeId::kAdminUser) {
+	cout << "Add a new user. Please enter a username: ";
+	cin >> username;
+	if (DatabaseManager::instance().find_user(username) == nullptr) {
+		cout << "Enter a password: ";
+		cin >> password;
+		cout << "Enter an email address: ";
+		cin >> email;
+		if (DatabaseManager::instance().find_email(email)) {
+			cout << "This email is already taken. Please choose another one: ";
+			while (DatabaseManager::instance().find_email(email)) {
+				cin >> email;
 			}
-			cout << "Usertype: Admin or player? a/p";
-			cin >> usertype;
 		}
-		else {
-			cout << "This username is already taken. Please choose another one.";
-			add_user();
+		cout << "Usertype: admin or player? a/p";
+		cin >> usertype;
+		if (usertype == "a") {
+			usertype = "admin";
 		}
-		DatabaseManager::instance().store_data(username, password, email, usertype);
+		else if (usertype == "p") {
+			usertype = "player";
+		}
+	} else {
+		cout << "This username is already taken. Please choose another one." << endl;
+		add_user();
 	}
+	DatabaseManager::instance().store_newUser(username, password, email, usertype);
+	//}
 }
 
 int MenuSystem::run_unknown_user_menu()

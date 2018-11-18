@@ -24,13 +24,13 @@ DatabaseManager& DatabaseManager::instance()
 	return s_instance;
 }
 
-void DatabaseManager::load_data(){
-	ifstream file;
+void DatabaseManager::load_data_ListUser() {
+	ifstream fileList;
 	string readFile, username, password, email, usertype;
-	file.open("listOfUsers.txt");
+	fileList.open("listOfUsers.txt");
 
-	if (file.is_open()) {
-		while (getline(file, readFile)) {
+	if (fileList.is_open()) {
+		while (getline(fileList, readFile)) {
 			istringstream stream(readFile);
 			stream >> username >> password >> email >> usertype;
 			if (usertype == "admin") {
@@ -40,22 +40,48 @@ void DatabaseManager::load_data(){
 				add_user(new PlayerUser(username, password, email));
 			}
 		}
-		file.close();
-	} else {
+		fileList.close();
+	}
+	else {
 		cerr << "Couldn't open the file!";
 	}
-
-	//add_user(new AdminUser("pascalev", "54321", "p.vacher@shu.ac.uk"));
-
-	//// add some players
-	//add_user(new PlayerUser("frank", "frank12345", "frank@unknown.com"));
-
-	//// add some games.
-	//add_game(Game(4789, "Bounceback", "A platform puzzle game for PSP"));
-	//add_game(Game(5246, "Piecefall", "A tetris like 3d puzzle game for PS4"));
 }
 
-void DatabaseManager::store_data(UserBase::Username& user, string& pw, string& mail, string& type)
+void DatabaseManager::load_data_ListGame() {
+	ifstream fileList;
+	Game::GameId gameId;
+	string readFile, title, desc;
+	fileList.open("listOfGames.txt");
+
+	if (fileList.is_open()) {
+		while (getline(fileList, readFile)) {
+			istringstream stream(readFile);
+			stream >> gameId >> title >> desc;
+			add_game(Game(gameId, title, desc));
+		}
+		fileList.close();
+	}
+	else {
+		cerr << "Couldn't open the file!";
+	}
+}
+
+void DatabaseManager::load_data(){
+	load_data_ListUser();
+	load_data_ListGame();
+}
+
+void DatabaseManager::store_data() {
+
+}
+
+//TODO
+void DatabaseManager::store_newGame(Game::GameId& id, string& gameTitle, string& description) {
+	ofstream outFile;
+	outFile.open("listOfGames.txt", ios::app);
+}
+
+void DatabaseManager::store_newUser(UserBase::Username& user, string& pw, string& mail, string& type)
 {
 	ofstream outFile;
 	outFile.open("listOfUsers.txt", ios::app);
@@ -86,7 +112,8 @@ void DatabaseManager::add_user(UserBase* pUser)
 bool DatabaseManager::find_email(const string& mail){
 	auto it = m_users.begin();
 	for (it; it != m_users.end(); ++it) {
-		if (it->second->get_email == mail) {
+		//FEHLER? 
+		if ((it->second->get_email) == mail) {
 			return true;
 		}
 	}
