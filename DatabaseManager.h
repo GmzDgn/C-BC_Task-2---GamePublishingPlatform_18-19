@@ -33,17 +33,18 @@ public:
 	void load_data_ListGame();
 
 	// Write all the data to storage.
-	void store_data();
+	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription);
 
 	void store_newUser(UserBase::Username& username, string& password, string& email, string& usertype);
 
-	void store_newGame(Game::GameId& id, string& gameTitle, string& description);
+	void store_newGame(string& gameTitle, string& description, double price);
 
 	// Adds a user to the db.
 	void add_user(UserBase* pUser);
 
-	// 
 	bool find_email(const string& mail);
+
+	string getVariable(string& readFile);
 
 	// Finds a user by username, return nullptr if the user is not found.
 	UserBase* find_user(const UserBase::Username& username);
@@ -51,7 +52,12 @@ public:
 	// iterating users using visitor pattern
 	template<typename Visitor> void visit_users(Visitor& func)
 	{
-		for (auto it : m_users) { func(*it.second); }
+		if (!m_users.empty()) {
+			for (auto it : m_users) { func(*it.second); }
+		}
+		else {
+			cout << "There is no user in the list." << endl;
+		}
 	}
 
 	// Adds a game to the db.
@@ -60,10 +66,17 @@ public:
 	// Finds a game by id, returns nullptr if the game is not found.
 	Game* find_game(const Game::GameId gameid);
 
+	void delete_game(const string& gameId);
+
 	// iterating games using visitor pattern
 	template<typename Visitor> void visit_games(Visitor& func)
 	{
-		for (auto it : m_games) { func(it.second); }
+		if (!m_games.empty()) {
+			for (auto it : m_games) { func(it.second); }
+		}
+		else {
+			cout << "The list is empty. No games are defined yet." << endl;
+		}
 	}
 
 private:
@@ -73,6 +86,7 @@ private:
 
 
 private:
+	int gameIdCounter;
 	// Types
 	using UserContainer = map<UserBase::Username, UserBase*>;
 	using GameContainer = map<Game::GameId, Game>;

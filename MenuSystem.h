@@ -7,6 +7,8 @@
 
 #include "DatabaseManager.h"
 
+using namespace std;
+
 class UserBase;
 
 class MenuSystem
@@ -22,9 +24,8 @@ public:
 private:
 	void list_all_games() const;
 
-	void list_all_users() const;
-
-	void add_user();
+	//gamze
+	void modify_game();
 
 	int run_login_screen();
 

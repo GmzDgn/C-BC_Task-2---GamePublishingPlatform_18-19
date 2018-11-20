@@ -5,6 +5,11 @@
 
 #include <string>
 #include <list>
+#include <iostream>
+
+#include "Game.h"
+
+using namespace std;
 
 //--
 // UserTypeId represents an identifier for the specific user type.
@@ -22,31 +27,22 @@ enum class UserTypeId
 class UserBase
 {
 public:
-	using Username = std::string;
-
-	UserBase(const Username& username, const std::string& password, const std::string& email)
-		: m_username(username)
-		, m_password(password)
-		, m_email(email)
-	{}
-
-	virtual ~UserBase() {}
-
+	using Username = string;
+	UserBase(const Username& username, const string& password, const string& email);
+	virtual ~UserBase();
 	// mechanism for identifying the user type at runtime.
 	virtual const UserTypeId get_user_type() const = 0;
-
-	const std::string get_username() const { return m_username; }
-
-	const std::string get_password() const { return m_password; }
-	void set_password(const std::string& val) { m_password = val; }
-
-	const std::string get_email() const { return m_email; }
-	void set_email(const std::string& val) { m_email = val; }
+	const void list_of_games() const;
+	const string get_username() const;
+	const string get_password() const;
+	void set_password(const string& val);
+	const string get_email() const;
+	void set_email(const string& val);
 
 private:
 	const Username m_username; // The users username (unique key)
-	std::string m_password; // Users password.
-	std::string m_email; // Users email address.
+	string m_password; // Users password.
+	string m_email; // Users email address.
 };
 
 //--
@@ -55,17 +51,14 @@ private:
 class PlayerUser : public UserBase
 {
 public:
-	using GameList = std::list<Game::GameId>;
-
+	using GameList = list<Game::GameId>;
 	// inherit the constructor.
 	using UserBase::UserBase;
 	
 	// define the specific user type.
-	virtual const UserTypeId  get_user_type() const override { return UserTypeId::kPlayerUser; }
-
-	const PlayerUser::GameList& get_game_list() const { return m_ownedGames; }
-
-	double get_available_funds() const { return m_accountFunds; }
+	virtual const UserTypeId  get_user_type() const override;
+	const PlayerUser::GameList& get_game_list() const;
+	double get_available_funds() const;
 
 private:
 	GameList m_ownedGames; // List of owned games.
@@ -80,8 +73,13 @@ class AdminUser : public UserBase
 public:
 	// inherit the constructor.
 	using UserBase::UserBase;
-
 	// define the specific user type.
-	virtual const UserTypeId get_user_type() const override { return UserTypeId::kAdminUser; }
+
+	virtual const UserTypeId get_user_type() const override;
+	void add_user();
+	void add_game();
+	void list_of_users() const;
+	void modify_game(Game*& game, const int option, const int gameId);
+	void remove_game();
 };
 

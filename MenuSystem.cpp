@@ -13,46 +13,46 @@ MenuSystem& MenuSystem::instance()
 void MenuSystem::list_all_games() const
 {
 	auto gameVisitorLambda = [](const Game& rGame) {
-		std::cout << rGame.get_title() << "\n";
+		cout << rGame.get_title() << "\n";
 	};
 
 	DatabaseManager::instance().visit_games(gameVisitorLambda);
 }
 
-void MenuSystem::list_all_users() const
-{
-	auto userVisitorLambda = [](const UserBase& rUser) {
-		std::cout << rUser.get_username() << " " << rUser.get_email() << "\n";
-	};
-
-	DatabaseManager::instance().visit_users(userVisitorLambda);
-}
+//void MenuSystem::list_all_users() const
+//{
+//	auto userVisitorLambda = [](const UserBase& rUser) {
+//		std::cout << rUser.get_username() << " " << rUser.get_email() << "\n";
+//	};
+//
+//	DatabaseManager::instance().visit_users(userVisitorLambda);
+//}
 
 int MenuSystem::run_login_screen()
 {
 	m_pUser = nullptr;
 
 	// in this menu we get the username and password.
-	std::string username;
-	std::string password;
+	string username;
+	string password;
 
-	std::cout << "Login Menu\n";
-	std::cout << "Username: ";
-	std::cin >> username;
+	cout << "Login Menu\n";
+	cout << "Username: ";
+	cin >> username;
 
-	std::cout << "Password: ";
-	std::cin >> password;
+	cout << "Password: ";
+	cin >> password;
 
 	// find the user and check password
 	auto pUser = DatabaseManager::instance().find_user(username);
 	if (pUser && pUser->get_password() == password)
 	{
 		m_pUser = pUser;
-		std::cout << "Hi " << m_pUser->get_username() << "\n";
+		cout << "Hi " << m_pUser->get_username() << "\n";
 	}
 	else
 	{
-		std::cout << "No such username or password!\n";
+		cout << "No such username or password!\n";
 	}
 	return 0;
 }
@@ -63,24 +63,28 @@ int MenuSystem::run_admin_user_menu()
 	int result = 0;
 	do
 	{
-		std::cout << "Admin Menu (" << m_pUser->get_username() << ")\n";
-		std::cout << "(1) List All Games\n";
-		std::cout << "(2) List All Users\n";
-		std::cout << "(3) Add Game\n";
-		std::cout << "(4) Add User\n";
-		std::cout << "(q) Logout\n";
+		cout << "Admin Menu (" << m_pUser->get_username() << ")\n";
+		cout << "(1) List All Games\n";
+		cout << "(2) List All Users\n";
+		cout << "(3) Add Game\n";
+		cout << "(4) Add User\n";
+		cout << "(5) Modify Game\n";
+		cout << "(6) Remove Game\n";
+		cout << "(q) Logout\n";
 
 		char option;
-		std::cin >> option;
+		cin >> option;
 
 		switch (option)
 		{
-		case '1': list_all_games(); break;
-		case '2': list_all_users(); break;
-		case '3': std::cout << "TODO\n"; break;
-		case '4': add_user(); break;
+		case '1': pAdminUser->list_of_games(); break;
+		case '2': pAdminUser->list_of_users(); break;
+		case '3': pAdminUser->add_game(); break;
+		case '4': pAdminUser->add_user(); break;
+		case '5': modify_game(); break;
+		case '6': pAdminUser->remove_game(); break;
 		case 'q': result = -1; break;
-		default:  std::cout << "INAVLID OPTION\n"; break;
+		default:  cout << "INAVLID OPTION\n"; break;
 		}
 	} while (result == 0);
 
@@ -88,6 +92,37 @@ int MenuSystem::run_admin_user_menu()
 	m_pUser = nullptr;
 
 	return 0;
+}
+
+void MenuSystem::modify_game() {
+
+	//ES gibt eine Methode find_game für das
+	Game* m_pGame = nullptr;
+	AdminUser* pAdminUser = static_cast<AdminUser*>(m_pUser);
+
+	cout << "Which game do you want to modify?:" << endl;
+	m_pUser->list_of_games();
+	cout << "Please enter the id of the game to modify: " << endl;
+	string gameId;
+	cin >> gameId;
+
+	//WENN GEFUNDEN WURDE
+	auto pGame = DatabaseManager::instance().find_game(stoi(gameId));
+	m_pGame = pGame;
+
+	cout << "What do you want to change?" << endl;
+	cout << "(1) Description" << endl;
+	cout << "(2) Price" << endl;
+
+	char option;
+	cin >> option;
+
+	switch (option)
+	{
+	case '1': pAdminUser->modify_game(m_pGame, 1, stoi(gameId)); break;
+	case '2': pAdminUser->modify_game(m_pGame, 2, stoi(gameId)); break;
+	default:  cout << "INAVLID OPTION\n"; break;
+	}
 }
 
 int MenuSystem::run_player_user_menu()
@@ -96,25 +131,25 @@ int MenuSystem::run_player_user_menu()
 	int result = 0;
 	do
 	{
-		std::cout << "Player Menu (" << m_pUser->get_username() << ")\n";
-		std::cout << "Wallet \x9C" << pPlayerUser->get_available_funds() << "\n";
-		std::cout << "(1) List All Games\n";
-		std::cout << "(2) List My Games\n";
-		std::cout << "(3) Buy Game\n";
-		std::cout << "(4) Add Funds\n";
-		std::cout << "(q) Logout\n";
+		cout << "Player Menu (" << m_pUser->get_username() << ")\n";
+		cout << "Wallet \x9C" << pPlayerUser->get_available_funds() << "\n";
+		cout << "(1) List All Games\n";
+		cout << "(2) List My Games\n";
+		cout << "(3) Buy Game\n";
+		cout << "(4) Add Funds\n";
+		cout << "(q) Logout\n";
 
 		char option;
-		std::cin >> option;
+		cin >> option;
 
 		switch (option)
 		{
 		case '1': list_all_games(); break;
-		case '2': std::cout << "TODO\n"; break;
-		case '3': std::cout << "TODO\n"; break;
-		case '4':std::cout << "TODO\n"; break;
+		case '2': cout << "TODO\n"; break;
+		case '3': cout << "TODO\n"; break;
+		case '4': cout << "TODO\n"; break;
 		case 'q': result = -1; break;
-		default:  std::cout << "INAVLID OPTION\n"; break;
+		default:  cout << "INAVLID OPTION\n"; break;
 		}
 	} while (result == 0);
 
@@ -124,57 +159,25 @@ int MenuSystem::run_player_user_menu()
 	return 0;
 }
 
-void MenuSystem::add_user()  {
-	string username, password, email, usertype;
-	//if (m_pUser->get_user_type() == UserTypeId::kAdminUser) {
-	cout << "Add a new user. Please enter a username: ";
-	cin >> username;
-	if (DatabaseManager::instance().find_user(username) == nullptr) {
-		cout << "Enter a password: ";
-		cin >> password;
-		cout << "Enter an email address: ";
-		cin >> email;
-		if (DatabaseManager::instance().find_email(email)) {
-			cout << "This email is already taken. Please choose another one: ";
-			while (DatabaseManager::instance().find_email(email)) {
-				cin >> email;
-			}
-		}
-		cout << "Usertype: admin or player? a/p";
-		cin >> usertype;
-		if (usertype == "a") {
-			usertype = "admin";
-		}
-		else if (usertype == "p") {
-			usertype = "player";
-		}
-	} else {
-		cout << "This username is already taken. Please choose another one." << endl;
-		add_user();
-	}
-	DatabaseManager::instance().store_newUser(username, password, email, usertype);
-	//}
-}
-
 int MenuSystem::run_unknown_user_menu()
 {
 	// in this menu we get the username and password.
 	int result = 0;
 
-	std::cout << "Main Menu\n";
-	std::cout << "(1) List All Games\n";
-	std::cout << "(2) Login\n";
-	std::cout << "(q) Quit\n";
+	cout << "Main Menu\n";
+	cout << "(1) List All Games\n";
+	cout << "(2) Login\n";
+	cout << "(q) Quit\n";
 
 	char option;
-	std::cin >> option;
+	cin >> option;
 
 	switch (option)
 	{
 	case '1': list_all_games(); break;
 	case '2': run_login_screen(); break;
 	case 'q': result = -1;  break;
-	default:  std::cout << "INAVLID OPTION\n"; break;
+	default:  cout << "INAVLID OPTION\n"; break;
 	}
 
 	return result;
