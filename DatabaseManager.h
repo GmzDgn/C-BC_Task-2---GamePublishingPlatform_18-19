@@ -35,6 +35,8 @@ public:
 	// Write all the data to storage.
 	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription);
 
+	void modify_user(const string& username, const double newFund);
+
 	void store_newUser(UserBase::Username& username, string& password, string& email, string& usertype);
 
 	void store_newGame(string& gameTitle, string& description, double price);
@@ -66,6 +68,10 @@ public:
 	// Finds a game by id, returns nullptr if the game is not found.
 	Game* find_game(const Game::GameId gameid);
 
+	Game* find_game_by_title(string& title);
+
+	string to_lower_string(string& lowerString);
+
 	void delete_game(const string& gameId);
 
 	// iterating games using visitor pattern
@@ -73,8 +79,7 @@ public:
 	{
 		if (!m_games.empty()) {
 			for (auto it : m_games) { func(it.second); }
-		}
-		else {
+		} else {
 			cout << "The list is empty. No games are defined yet." << endl;
 		}
 	}

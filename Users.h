@@ -32,7 +32,6 @@ public:
 	virtual ~UserBase();
 	// mechanism for identifying the user type at runtime.
 	virtual const UserTypeId get_user_type() const = 0;
-	const void list_of_games() const;
 	const string get_username() const;
 	const string get_password() const;
 	void set_password(const string& val);
@@ -53,16 +52,17 @@ class PlayerUser : public UserBase
 public:
 	using GameList = list<Game::GameId>;
 	// inherit the constructor.
-	using UserBase::UserBase;
-	
+	//using UserBase::UserBase;
+	PlayerUser(const Username& username, const string& password, const string& email, const double fund);
 	// define the specific user type.
 	virtual const UserTypeId  get_user_type() const override;
 	const PlayerUser::GameList& get_game_list() const;
 	double get_available_funds() const;
-
+	void add_funds();
+	void search_game_by_title();
 private:
 	GameList m_ownedGames; // List of owned games.
-	double m_accountFunds; // The players available funds.
+	double m_accountFunds = 0.0; // The players available funds.
 };
 
 //--

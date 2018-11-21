@@ -33,13 +33,13 @@ public:
 
 	void set_price(const double val) { m_price = val;  }
 
-	void set_desc(const string val) { m_description = val; }
+	void set_desc(const string& val) { m_description = val; }
 
 private:
 	const GameId m_gameId;	// Numerical identifier for a game  (unique key).
-	string m_title; // The game title
+	string m_title; // The game title.
 	string m_description; // Some information about the game.
-	double m_price;
+	double m_price;	// The price of the game.
 };
 
 

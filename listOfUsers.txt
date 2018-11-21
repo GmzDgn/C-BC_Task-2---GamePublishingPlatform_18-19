@@ -1,6 +1,6 @@
-Gamze 123 gamze@hotmail.de admin
-Oez 123 oez@hotmail.com player
-nily 123 nili@hotmail.com player
-emran 123 emran@hotmail.de player
-caner 123 cane@hotmail.de admin
-eda 123 eda@hotmail.de player
+Gamze 123 gamze@hotmail.de admin 0.0
+Oez 123 oez@hotmail.com player 0.0
+nily 123 nili@hotmail.com player 100.000000
+emran 123 emran@hotmail.de player 0.0
+caner 123 cane@hotmail.de admin 0.0
+eda 123 eda@hotmail.de player 0.0

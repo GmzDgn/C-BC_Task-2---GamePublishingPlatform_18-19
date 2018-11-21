@@ -28,23 +28,20 @@ void DatabaseManager::load_data() {
 
 void DatabaseManager::load_data_ListUser() {
 	ifstream fileList;
-	string readFile, username, password, email, usertype;
+	string readFile, username, password, email, usertype, funds;
 	fileList.open("listOfUsers.txt");
 
 	if (fileList.is_open()) {
-		while (getline(fileList, readFile)) {
-			istringstream stream(readFile);
-			stream >> username >> password >> email >> usertype;
+		while (fileList >> username >> password >> email >> usertype >> funds) {
 			if (usertype == "admin") {
 				add_user(new AdminUser(username, password, email));
 			}
 			else {
-				add_user(new PlayerUser(username, password, email));
+				add_user(new PlayerUser(username, password, email, stod(funds)));
 			}
 		}
 		fileList.close();
-	}
-	else {
+	} else {
 		cerr << "Couldn't open the file!";
 	}
 }
@@ -67,8 +64,34 @@ void DatabaseManager::load_data_ListGame() {
 		}
 		this->gameIdCounter = gameId;
 		fileList.close();
+	} else {
+		cerr << "Couldn't open the file!";
 	}
-	else {
+}
+
+void DatabaseManager::modify_user(const string& username, const double newFund) {
+	ifstream fileList;
+	ofstream outFile("listOfTheUsers.txt");
+	string readFile, id, fund, password, email, usertype;
+	fileList.open("listOfUsers.txt", ios::app);
+
+	if (fileList.is_open()) {
+		while (getline(fileList, readFile)) {
+			istringstream stream(readFile);
+			stream >> id >> password >> email >> usertype >> fund;
+			if (id != username) {
+				outFile << readFile << endl;
+			} else {
+				readFile = id + ' ' + password + ' ' + email + ' ' + usertype + ' ' + to_string(newFund);
+				outFile << readFile << endl;
+			}
+		}
+		fileList.close();
+		outFile.close();
+
+		remove("listOfUsers.txt");
+		rename("listOfTheUsers.txt", "listOfUsers.txt");
+	} else {
 		cerr << "Couldn't open the file!";
 	}
 }
@@ -79,33 +102,21 @@ void DatabaseManager::modify_game(Game*& rGame, const string& newPrice, const st
 	string readFile, id, price;
 	fileList.open("listOfGames.txt", ios::app);
 
-	if (!newPrice.empty()) {
-		if (fileList.is_open()) {
-			while (getline(fileList, readFile)) {
-				int pos = readFile.find(';');
-				id = readFile.substr(0, pos);
-				if (rGame->get_game_id() != stoi(id)) {
-					outFile << readFile << endl;
-				}
-				else {
+	if (fileList.is_open()) {
+		while (getline(fileList, readFile)) {
+			int pos = readFile.find(';');
+			id = readFile.substr(0, pos);
+			if (rGame->get_game_id() != stoi(id)) {
+				outFile << readFile << endl;
+			} else {
+				if (!newPrice.empty()) {
 					readFile = id + ";" + rGame->get_title() + ";" + rGame->get_desc() + ";" + newPrice + ";\n";
 					outFile << readFile;
-				}
-			}
-		}
-	}
-	else if (!newDescription.empty()) {
-		if (fileList.is_open()) {
-			while (getline(fileList, readFile)) {
-				int pos = readFile.find(';');
-				id = readFile.substr(0, pos);
-				if (rGame->get_game_id() != stoi(id)) {
-					outFile << readFile << endl;
-				}
-				else {
+				} else if (!newDescription.empty()) {
 					readFile = id + ";" + rGame->get_title() + ";" + newDescription + ";" + to_string(rGame->get_price()) + ";\n";
 					outFile << readFile;
 				}
+
 			}
 		}
 	}
@@ -127,9 +138,11 @@ void DatabaseManager::delete_game(const string& gameId) {
 			int pos = readFile.find(';');
 			id = readFile.substr(0, pos);
 			if (gameId != id) {
-				cout << "ID: " << id << endl;
-				cout << "READFILE: " << readFile;
 				outFile << readFile;
+			}
+			else {
+				//TODO FUNKTIONIRTS?
+				m_games.erase(stoi(gameId));
 			}
 		}
 	}
@@ -152,8 +165,7 @@ void DatabaseManager::store_newGame(string& gameTitle, string& description, doub
 
 	if (!outFile) {
 		cerr << "Textfile doesn't exist!";
-	}
-	else {
+	} else {
 		outFile << id << ';' << title << ';' << desc << ';' << to_string(price) << ';' << endl;
 		outFile.close();
 		add_game(Game(id, title, desc, price));
@@ -169,18 +181,17 @@ void DatabaseManager::store_newUser(UserBase::Username& user, string& pw, string
 	string password = pw;
 	string email = mail;
 	string usertype = type;
+	string funds = "0.0";
 
 	if (!outFile) {
 		cerr << "Textfile doesn't exist!";
-	}
-	else {
-		outFile << username << ' ' << password << ' ' << email << ' ' << usertype << endl;
+	} else {
+		outFile << username << ' ' << password << ' ' << email << ' ' << usertype << ' ' << funds << endl;
 		outFile.close();
 		if (usertype == "admin") {
 			add_user(new AdminUser(username, password, email));
-		}
-		else {
-			add_user(new PlayerUser(username, password, email));
+		} else {
+			add_user(new PlayerUser(username, password, email, stod(funds)));
 			cout << "You have added the user " << username << " successfully!" << endl;
 		}
 	}
@@ -202,18 +213,39 @@ void DatabaseManager::add_game(Game& rGame)
 	m_games.insert(std::make_pair(rGame.get_game_id(), rGame));
 }
 
-Game* DatabaseManager::find_game(const Game::GameId gameid)
-{
+Game* DatabaseManager::find_game(const Game::GameId gameid) {
 	auto it = m_games.find(gameid);
-	if (it != m_games.end())
-	{
+	if (it != m_games.end()) {
 		return &it->second;
-	}
-	else
-	{
+	} else {
 		return nullptr;
 	}
 }
+
+Game* DatabaseManager::find_game_by_title(string& title) {
+	string searchTitle = to_lower_string(title);
+	string iteratorTitle;
+
+	auto it = m_games.begin();
+	while (it != m_games.end()) {
+		iteratorTitle = it->second.get_title();
+		iteratorTitle = to_lower_string(iteratorTitle);
+		if (iteratorTitle == searchTitle) {
+			return &it->second;
+		}
+		++it;
+	}
+	return nullptr;
+}
+
+string DatabaseManager::to_lower_string(string& lowerString) {
+	string searchLowerTitle;
+	for (int i = 0; i <= lowerString.length(); ++i) {
+		searchLowerTitle += tolower(lowerString[i]);
+	}
+	return searchLowerTitle;
+}
+
 
 bool DatabaseManager::find_email(const string& mail) {
 	for (auto it = m_users.begin(); it != m_users.end(); ++it) {
@@ -230,9 +262,7 @@ UserBase* DatabaseManager::find_user(const UserBase::Username& username)
 	if (it != m_users.end())
 	{
 		return it->second;
-	}
-	else
-	{
+	} else {
 		return nullptr;
 	}
 }

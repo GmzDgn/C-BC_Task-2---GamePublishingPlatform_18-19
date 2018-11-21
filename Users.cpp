@@ -32,13 +32,6 @@ const string UserBase::get_email() const {
 void UserBase::set_email(const string& val) { 
 	m_email = val; 
 }
-
-const void UserBase::list_of_games() const {
-	auto gameVisitorLambda = [](const Game& rGame) {
-		cout << "ID: " << rGame.get_game_id() << " " << rGame.get_title() << ": " << rGame.get_desc() << endl;
-	};
-	DatabaseManager::instance().visit_games(gameVisitorLambda);
-}
 //------------UserBase------------
 
 
@@ -108,7 +101,8 @@ void AdminUser::modify_game(Game*& game, const int option, const int gameId) {
 
 	if (option == 1) {
 		cout << "Change the description: ";
-		cin >> tmp;
+		cin.ignore();
+		getline(cin, tmp);
 		game->set_desc(tmp);
 		DatabaseManager::instance().modify_game(game, "", tmp);
 		cout << "You changed the description successfully!" << endl;
@@ -125,9 +119,6 @@ void AdminUser::modify_game(Game*& game, const int option, const int gameId) {
 
 void AdminUser::remove_game() {
 	string id;
-
-	cout << "Which game do you want to delete?:" << endl;
-	list_of_games();
 	cout << "Please enter the id of the game to remove: ";
 	cin >> id;
 
@@ -135,6 +126,9 @@ void AdminUser::remove_game() {
 }
 //------------AdminBase------------
 
+
+PlayerUser::PlayerUser(const Username& username, const string& password, const string& email, const double fund) 
+	: UserBase(username, password, email), m_accountFunds(fund){}
 
 //------------PlayerBase------------
 const UserTypeId PlayerUser::get_user_type() const {
@@ -147,5 +141,31 @@ const PlayerUser::GameList& PlayerUser::get_game_list() const {
 
 double PlayerUser::get_available_funds() const {
 	return m_accountFunds;
+}
+
+void PlayerUser::add_funds() {
+	cout << "Add funds: ";
+	string fund;
+	cin >> fund;
+	this->m_accountFunds += stod(fund);
+	double get = get_available_funds();
+	cout << "FUNDS: " << get << endl;
+	DatabaseManager::instance().modify_user(get_username(), m_accountFunds);
+	cout << "\nYou added " << fund << " in your wallet successfully! Current wallet: " << m_accountFunds << endl;
+}
+
+void PlayerUser::search_game_by_title() {
+	cout << "Enter the title of the game: ";
+	string title;
+	cin.ignore();
+	getline(cin, title);
+	
+	auto pGame = DatabaseManager::instance().find_game_by_title(title);
+	if (pGame == nullptr) {
+		cout << "The title which you entered is not existing" << endl;
+	}
+	else {
+		cout << "Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << " / Price: " << pGame->get_price() << endl;
+	}
 }
 //------------PlayerBase------------
