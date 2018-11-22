@@ -28,21 +28,29 @@ public:
 	// Initialize the database from storage.
 	void load_data();
 
-	void load_data_ListUser();
+	void load_list_users();
 
-	void load_data_ListGame();
+	void load_list_games();
+
+	void load_game_of_user();
 
 	// Write all the data to storage.
 	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription);
 
 	void modify_user(const string& username, const double newFund);
 
-	void store_newUser(UserBase::Username& username, string& password, string& email, string& usertype);
+	void store_newGame(const string& gameTitle, const string& description, const double price);
 
-	void store_newGame(string& gameTitle, string& description, double price);
+	void store_purchased_game(PlayerUser* rPlayer, Game* rGame);
+
+	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type);
+
+	void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
 	// Adds a user to the db.
 	void add_user(UserBase* pUser);
+
+	void add_guest(UserBase* pUser);
 
 	bool find_email(const string& mail);
 
@@ -50,6 +58,8 @@ public:
 
 	// Finds a user by username, return nullptr if the user is not found.
 	UserBase* find_user(const UserBase::Username& username);
+
+	UserBase* find_guest(const string& email);
 
 	// iterating users using visitor pattern
 	template<typename Visitor> void visit_users(Visitor& func)
@@ -91,13 +101,14 @@ private:
 
 
 private:
-	int gameIdCounter;
+	int gameIdCounter = 0;
 	// Types
 	using UserContainer = map<UserBase::Username, UserBase*>;
 	using GameContainer = map<Game::GameId, Game>;
+	using GuestContainer = list<UserBase*>;
 
 	UserContainer m_users;
 	GameContainer m_games;
-
+	GuestContainer l_guest;
 };
 

@@ -33,6 +33,8 @@ private:
 
 	int run_player_user_menu();
 
+	int run_login_as_guest();
+
 	int run_unknown_user_menu();
 
 private:

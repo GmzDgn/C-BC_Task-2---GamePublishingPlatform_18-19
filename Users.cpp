@@ -35,7 +35,7 @@ void UserBase::set_email(const string& val) {
 //------------UserBase------------
 
 
-//------------AdminBase------------
+//------------AdminUser------------
 const UserTypeId AdminUser::get_user_type() const {
 	return UserTypeId::kAdminUser;
 }
@@ -70,10 +70,10 @@ void AdminUser::add_user() {
 		usertype = "player";
 	}
 	DatabaseManager::instance().store_newUser(username, password, email, usertype);
+	cout << "You have added the user " << username << " successfully!" << endl << endl;
 }
 
 void AdminUser::add_game() {
-	int id;
 	double price;
 	string title, desc;
 
@@ -85,12 +85,13 @@ void AdminUser::add_game() {
 	cin.ignore();
 	getline(cin, desc);
 	DatabaseManager::instance().store_newGame(title, desc, price);
+	cout << "You have added the game " << title << " successfully!" << endl << endl;
 }
 
 void AdminUser::list_of_users() const
 {
 	auto userVisitorLambda = [](const UserBase& rUser) {
-		cout << rUser.get_username() << " " << rUser.get_email() << "\n";
+		cout << rUser.get_username() << " " << rUser.get_email() << endl << endl;
 	};
 
 	DatabaseManager::instance().visit_users(userVisitorLambda);
@@ -105,14 +106,12 @@ void AdminUser::modify_game(Game*& game, const int option, const int gameId) {
 		getline(cin, tmp);
 		game->set_desc(tmp);
 		DatabaseManager::instance().modify_game(game, "", tmp);
-		cout << "You changed the description successfully!" << endl;
 	}
 	else {
 		cout << "Define a new price: ";
 		cin >> tmp;
 		game->set_price(stod(tmp));
 		DatabaseManager::instance().modify_game(game, tmp, "");
-		cout << "You changed the price successfully!" << endl;
 	}
 
 }
@@ -123,23 +122,37 @@ void AdminUser::remove_game() {
 	cin >> id;
 
 	DatabaseManager::instance().delete_game(id);
+	cout << "You removed the game successfully!" << endl << endl;
 }
-//------------AdminBase------------
+
+void AdminUser::view_statistics() {
+
+}
+//------------AdminUser------------
 
 
+//------------PlayerUser------------
 PlayerUser::PlayerUser(const Username& username, const string& password, const string& email, const double fund) 
 	: UserBase(username, password, email), m_accountFunds(fund){}
 
-//------------PlayerBase------------
 const UserTypeId PlayerUser::get_user_type() const {
 	return UserTypeId::kPlayerUser;
 }
 
-const PlayerUser::GameList& PlayerUser::get_game_list() const {
+ const PlayerUser::GameList& PlayerUser::get_game_list() const{
 	return m_ownedGames;
 }
 
-double PlayerUser::get_available_funds() const {
+void PlayerUser::output_game_list() {
+	cout << "Your bag:" << endl;
+	GameList ownedGames = get_game_list();
+	 for (list<Game::GameId>::const_iterator it = ownedGames.begin(); it != ownedGames.end(); ++it) {
+		 auto pGame = DatabaseManager::instance().find_game(*it);
+		 cout << "ID: " << pGame->get_game_id() << " / Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << endl;
+	 }
+}
+
+const double PlayerUser::get_available_funds() const {
 	return m_accountFunds;
 }
 
@@ -151,7 +164,11 @@ void PlayerUser::add_funds() {
 	double get = get_available_funds();
 	cout << "FUNDS: " << get << endl;
 	DatabaseManager::instance().modify_user(get_username(), m_accountFunds);
-	cout << "\nYou added " << fund << " in your wallet successfully! Current wallet: " << m_accountFunds << endl;
+	cout << "You added " << fund << " in your wallet successfully! Current wallet: " << m_accountFunds << endl << endl;
+}
+
+void PlayerUser::withdraw_funds(const double val) {
+	m_accountFunds -= val;
 }
 
 void PlayerUser::search_game_by_title() {
@@ -162,10 +179,102 @@ void PlayerUser::search_game_by_title() {
 	
 	auto pGame = DatabaseManager::instance().find_game_by_title(title);
 	if (pGame == nullptr) {
-		cout << "The title which you entered is not existing" << endl;
+		cout << "The title which you entered is not existing" << endl << endl;
 	}
 	else {
-		cout << "Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << " / Price: " << pGame->get_price() << endl;
+		cout << "Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << " / Price: " << pGame->get_price() << endl << endl;
 	}
 }
-//------------PlayerBase------------
+void PlayerUser::buy_game() {
+	Game* pGame = nullptr;
+	double gamePrice = 0;
+	double userFunds = 0;
+
+	cout << "Enter the ID of the game to buy it: ";
+	string id;
+	cin.ignore();
+	getline(cin, id);
+	if (id != "") {
+		pGame = DatabaseManager::instance().find_game(stoi(id));
+	}
+	if (pGame != nullptr) {
+		gamePrice = pGame->get_price();
+	}
+	userFunds = this->get_available_funds();
+	if (userFunds >= gamePrice) {
+		this->withdraw_funds(gamePrice);
+		DatabaseManager::instance().modify_user(this->get_username(), this->get_available_funds());
+		m_ownedGames.push_back(pGame->get_game_id());
+		DatabaseManager::instance().store_purchased_game(this, pGame);
+		cout << "The game " << pGame->get_title() << " is yours now!" << endl << endl;
+	}
+	else {
+		cout << "Sorry you can not purchase this game. You don't have enough money!" << endl << endl;
+	}
+}
+
+void PlayerUser::add_game_to_list(const Game::GameId& id) {
+	m_ownedGames.push_back(id);
+}
+
+void PlayerUser::play_game() {
+	int result = 0;
+	cout << "Which game do you want to play?" << endl;
+	output_game_list();
+	cout << "Please enter the ID to launch the game: ";
+	string id;
+	cin >> id;
+	auto pGame = DatabaseManager::instance().find_game(stoi(id));
+	cout << pGame->get_title() << " IS LAUNCHING..." << endl << endl;
+	while (result == 0) {
+		cout << "(q) Quit game\n";
+		char option;
+		cin >> option;
+		switch (option)
+		{	
+		case 'q': result = -1; break;
+		default:  cout << "INAVLID OPTION\n"; break;
+		}
+	}
+}
+void PlayerUser::gift_another_player() {
+	cout << "Which player do you want to gift?" << endl;
+	string playerToGift, gameToGift;
+	cin.ignore();
+	getline(cin, playerToGift);
+	PlayerUser* userToGift = dynamic_cast<PlayerUser*>(DatabaseManager::instance().find_user(playerToGift));
+	if (userToGift != nullptr) {
+		auto listOfUserToGift = userToGift->get_game_list();
+		if (userToGift != nullptr) {
+			cout << "Which game do you want to gift?" << endl;
+			getline(cin, gameToGift);
+			auto pGame = DatabaseManager::instance().find_game_by_title(gameToGift);
+			auto ownedGames = get_game_list();
+			list<Game::GameId>::const_iterator it = ownedGames.begin();
+			for (list<Game::GameId>::const_iterator it = ownedGames.begin(); it != ownedGames.end(); ++it) {
+				if (*it == pGame->get_game_id()) {
+					listOfUserToGift.push_back(pGame->get_game_id());
+					DatabaseManager::instance().store_purchased_game(userToGift, pGame);
+					ownedGames.erase(it);
+					DatabaseManager::instance().delete_game_of_user(this, pGame);
+					break;
+				}
+			}
+			cout << "You gave " + userToGift->get_username() + " the game: " + pGame->get_title() + ".";
+		}
+		else {
+			cout << "This player doesn't exist!" << endl << endl;
+		}
+	} else {
+		cout << "This user doesn't exist!" << endl;
+	}
+}
+//------------PlayerUser------------
+
+
+//------------Guest------------
+const UserTypeId Guest::get_user_type() const {
+	return UserTypeId();
+}
+//------------Guest------------
+
