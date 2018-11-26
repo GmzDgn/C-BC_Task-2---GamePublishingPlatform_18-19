@@ -80,6 +80,8 @@ public:
 	void play_game();
 	// you can gift another player with a game
 	void gift_another_player();
+	// you can view the purchases or the time and the lenght of time each player spends in a game
+	void view_statistics();
 
 	//	virtual ~PlayerUser();
 

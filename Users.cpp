@@ -269,6 +269,18 @@ void PlayerUser::gift_another_player() {
 		cout << "This user doesn't exist!" << endl;
 	}
 }
+void PlayerUser::view_statistics() {
+	cout << "(1) Purchase statistics\n";
+	cout << "(2) Game statistics\n";
+
+	char option;
+	cin >> option;
+
+	switch (option) {
+	case '1': "TODO"; break;
+	case '2': "TODO"; break;
+	}
+}
 //------------PlayerUser------------
 
 

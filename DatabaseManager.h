@@ -45,6 +45,8 @@ public:
 
 	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type);
 
+	void store_records_of_purchases(PlayerUser* rPlayer, Game* rGame);
+
 	void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
 	// Adds a user to the db.

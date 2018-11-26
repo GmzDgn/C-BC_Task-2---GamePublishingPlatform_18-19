@@ -69,12 +69,14 @@ void DatabaseManager::load_game_of_user() {
 	ifstream file("listOfUserGames.txt", ios::app);
 
 	if (file.is_open()) {
-		while (getline(file, readFile)) {
-			username = getVariable(readFile);
-			auto pUser = dynamic_cast<PlayerUser*>(find_user(username));
-			while ((gameId = getVariable(readFile)) != "") {
-				Game::GameId id = stoi(gameId);
-				pUser->add_game_to_list(id);
+		if (!(file.peek() == ifstream::traits_type::eof())) {
+			while (getline(file, readFile)) {
+				username = getVariable(readFile);
+				auto pUser = dynamic_cast<PlayerUser*>(find_user(username));
+				while ((gameId = getVariable(readFile)) != "") {
+					Game::GameId id = stoi(gameId);
+					pUser->add_game_to_list(id);
+				}
 			}
 		}
 		file.close();
@@ -201,23 +203,31 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 	string readFile, tmp, username, gameId;
 
 	if (file.is_open()) {
-		while (getline(file, readFile)) {
-			username = getVariable(readFile);
-			tmp = username + ";";
-			while ((gameId = getVariable(readFile))!= "") {
-				tmp += gameId;
-				tmp += ";";
+		if (!(file.peek() == ifstream::traits_type::eof())) {
+			while (getline(file, readFile)) {
+				username = getVariable(readFile);
+				tmp = username + ";";
+				while ((gameId = getVariable(readFile)) != "") {
+					tmp += gameId;
+					tmp += ";";
+				}
+				if (rPlayer->get_username() == username) {
+					string id = to_string(rGame->get_game_id()) + ";";
+					tmp += id;
+				}
+				tmp += '\n';
+				if (newFile.is_open()) {
+					newFile << tmp;
+				}
+				else {
+					cerr << "Couldn't open the file!";
+				}
 			}
-			if (rPlayer->get_username() == username) {
-				string id = to_string(rGame->get_game_id()) + ";";
-				tmp += id;
-			}
-			tmp += '\n';
-			if (newFile.is_open()) {
-				newFile << tmp;
-			} else {
-				cerr << "Couldn't open the file!";
-			}
+		} else {
+			username = rPlayer->get_username();
+			gameId = to_string(rGame->get_game_id());
+			tmp = username + ";" + gameId + ";";
+			newFile << tmp;
 		}
 		file.close();
 		newFile.close();
@@ -285,6 +295,10 @@ void DatabaseManager::store_newUser(const UserBase::Username& user, const string
 	} else {
 		cerr << "Textfile doesn't exist!";
 	}
+}
+
+void DatabaseManager::store_records_of_purchases(PlayerUser * rPlayer, Game * rGame) {
+
 }
 
 void DatabaseManager::add_user(UserBase* pUser) {
