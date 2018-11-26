@@ -60,7 +60,7 @@ int MenuSystem::run_admin_user_menu()
 		cout << "(4) Add User\n";
 		cout << "(5) Modify Game\n";
 		cout << "(6) Remove Game\n";
-		cout << "(7) View Statistics";
+		cout << "(7) View Statistics\n";
 		cout << "(q) Logout\n";
 
 		char option;

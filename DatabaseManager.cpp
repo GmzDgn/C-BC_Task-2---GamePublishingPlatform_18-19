@@ -65,7 +65,7 @@ void DatabaseManager::load_list_games() {
 }
 
 void DatabaseManager::load_game_of_user() {
-	string readFile, username, gameId;
+	string readFile, username, gameId, time;
 	ifstream file("listOfUserGames.txt", ios::app);
 
 	if (file.is_open()) {
@@ -74,8 +74,11 @@ void DatabaseManager::load_game_of_user() {
 				username = getVariable(readFile);
 				auto pUser = dynamic_cast<PlayerUser*>(find_user(username));
 				while ((gameId = getVariable(readFile)) != "") {
+					time = getVariable(readFile);
+					pUser->set_purchased_time(time);
 					Game::GameId id = stoi(gameId);
-					pUser->add_game_to_list(id);
+					auto pGame = find_game(id);
+					pUser->add_game_to_list(pGame);
 				}
 			}
 		}
@@ -200,7 +203,8 @@ void DatabaseManager::store_newGame(const string& gameTitle, const string& descr
 void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 	ifstream file("listOfUserGames.txt", ios::app);
 	ofstream newFile("listOfTheUserGames.txt", ios::app);
-	string readFile, tmp, username, gameId;
+	string readFile, tmp, username, gameId, timeString;
+	bool isStoredGame = false;
 
 	if (file.is_open()) {
 		if (!(file.peek() == ifstream::traits_type::eof())) {
@@ -210,12 +214,29 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 				while ((gameId = getVariable(readFile)) != "") {
 					tmp += gameId;
 					tmp += ";";
+					timeString = getVariable(readFile);
+					tmp += timeString;
+					tmp += ";";
 				}
 				if (rPlayer->get_username() == username) {
+					timeString = getTime();
 					string id = to_string(rGame->get_game_id()) + ";";
 					tmp += id;
-				}
+					tmp += timeString;
+					tmp += ";";
+					isStoredGame = true;
+					rPlayer->set_purchased_time(timeString);
+				} 
 				tmp += '\n';
+				if (newFile.is_open()) {
+					newFile << tmp;
+				} else {
+					cerr << "Couldn't open the file!";
+				}
+			}
+			if (!isStoredGame) {
+				tmp = rPlayer->get_username() + ";" + to_string(rGame->get_game_id()) + ";" + getTime() + ";";
+				rPlayer->set_purchased_time(timeString);
 				if (newFile.is_open()) {
 					newFile << tmp;
 				}
@@ -226,8 +247,13 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 		} else {
 			username = rPlayer->get_username();
 			gameId = to_string(rGame->get_game_id());
-			tmp = username + ";" + gameId + ";";
-			newFile << tmp;
+			tmp = username + ";" + gameId + ";" + getTime() + ";";
+			rPlayer->set_purchased_time(timeString);
+			if (newFile.is_open()) {
+				newFile << tmp;
+			} else {
+				cerr << "Couldn't open the file!";
+			}
 		}
 		file.close();
 		newFile.close();
@@ -236,6 +262,20 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 	} else {
 		cerr << "Couldn't open the file!";
 	}
+}
+
+string DatabaseManager::getTime() {
+	string timeString;
+	time_t rawtime = time(0);
+	struct tm timeinfo;
+	errno_t result;
+	result = localtime_s(&timeinfo, &rawtime);
+	timeString = to_string(timeinfo.tm_mday) + "/" + to_string(timeinfo.tm_mon + 1) + "/" + to_string(timeinfo.tm_year + 1900);
+	return timeString;
+}
+
+const map<UserBase::Username, UserBase*> DatabaseManager::get_all_users() const {
+	return m_users;
 }
 
 void DatabaseManager::delete_game_of_user(PlayerUser* rPlayer, Game*& rGame) {
@@ -297,10 +337,6 @@ void DatabaseManager::store_newUser(const UserBase::Username& user, const string
 	}
 }
 
-void DatabaseManager::store_records_of_purchases(PlayerUser * rPlayer, Game * rGame) {
-
-}
-
 void DatabaseManager::add_user(UserBase* pUser) {
 	// Store the user instance in the user map, indexed by username.
 	// We are taking ownership of the memory pointer to.
@@ -317,7 +353,7 @@ void DatabaseManager::add_guest(UserBase* pUser) {
 
 void DatabaseManager::add_game(Game& rGame) {
 	// Store the game indexed by game id.
-	m_games.insert(std::make_pair(rGame.get_game_id(), rGame));
+	m_games.insert(make_pair(rGame.get_game_id(), rGame));
 }
 
 Game* DatabaseManager::find_game(const Game::GameId gameid) {

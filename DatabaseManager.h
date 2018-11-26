@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <ctime>
 
 using namespace std;
 
@@ -44,8 +45,6 @@ public:
 	void store_purchased_game(PlayerUser* rPlayer, Game* rGame);
 
 	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type);
-
-	void store_records_of_purchases(PlayerUser* rPlayer, Game* rGame);
 
 	void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
@@ -95,6 +94,10 @@ public:
 			cout << "The list is empty. No games are defined yet." << endl;
 		}
 	}
+
+	string getTime();
+
+	const map<UserBase::Username, UserBase*> get_all_users() const;
 
 private:
 	// Constructors are private for singleton pattern.f

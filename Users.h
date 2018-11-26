@@ -5,6 +5,7 @@
 
 #include <string>
 #include <list>
+#include <map>
 #include <iostream>
 #include "Game.h"
 
@@ -55,13 +56,14 @@ private:
 class PlayerUser : public UserBase {
 public:
 	// storing all the games that exists
-	using GameList = list<Game::GameId>;
+	//using GameList = list<Game::GameId>;
+	using MyGameList = map<Game::GameId, Game*>;
 	// calls UserBase constructor and initializes the fund of the player
 	PlayerUser(const Username& username, const string& password, const string& email, const double fund);
 	// define the specific user type.
 	virtual const UserTypeId  get_user_type() const override;
 	// you can get the whole game list
-	const PlayerUser::GameList& get_game_list() const;
+	const PlayerUser::MyGameList& get_game_list() const;
 	// you can get the current fund of the player
 	const double get_available_funds() const;
 	// you can add funds
@@ -69,7 +71,7 @@ public:
 	// you can withdraw money from the fund
 	void withdraw_funds(const double val);
 	// you can add a game to the list
-	void add_game_to_list(const Game::GameId& id);
+	void add_game_to_list(Game* game);
 	// you can get a output of the games that the current player has
 	void output_game_list();
 	// you can search a game by title
@@ -80,15 +82,20 @@ public:
 	void play_game();
 	// you can gift another player with a game
 	void gift_another_player();
-	// you can view the purchases or the time and the lenght of time each player spends in a game
-	void view_statistics();
+
+	void set_purchased_time(const string& timestemp);
+
+	string get_purchased_time();
+
+	map<Game::GameId, Game*> get_myGames();
 
 	//	virtual ~PlayerUser();
 
-
 private:
-	GameList m_ownedGames; // List of owned games.
+	//GameList m_ownedGames; // List of owned games.
+	MyGameList m_myGames;
 	double m_accountFunds = 0.0; // The players available funds.
+	string time;
 };
 
 //--
