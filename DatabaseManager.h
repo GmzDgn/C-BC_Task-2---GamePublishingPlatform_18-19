@@ -48,7 +48,7 @@ public:
 
 	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type);
 
-	void store_playedGame_records(const PlayerUser* rPlayer, const Game* rGame, const string& date, const douvble time);
+	void store_playedGame_records(PlayerUser* rPlayer, const Game* rGame, const string& tDate, const double tLength);
 
 	void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
@@ -99,7 +99,9 @@ public:
 		}
 	}
 
-	string getTime();
+	string getDate();
+
+	const string getTime() const;
 
 	const map<UserBase::Username, UserBase*> get_all_users() const;
 

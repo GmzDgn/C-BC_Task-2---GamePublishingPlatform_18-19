@@ -90,7 +90,7 @@ void DatabaseManager::load_game_of_user() {
 }
 
 void DatabaseManager::load_records() {
-	string lengthOfPlay, date, time, username, game, readFile;
+	string username, gameTitle, date, time, lenghtOfPlay, readFile;
 	ifstream file("listOfRecords.txt");
 	int x = -1;
 
@@ -98,17 +98,14 @@ void DatabaseManager::load_records() {
 		if (!(file.peek() == ifstream::traits_type::eof())) {
 			while (getline(file, readFile)) {
 				username = getVariable(readFile);
-				game = getVariable(readFile);
-				date = stod(getVariable(readFile));
-				time = stod(getVariable(readFile));
-				lengthOfPlay = getVariable(readFile);
+				gameTitle = getVariable(readFile);
+				date = getVariable(readFile);
+				time = getVariable(readFile);
+				lenghtOfPlay = getVariable(readFile);
 				
 				auto pUser = dynamic_cast<PlayerUser*>(find_user(username));
 				if (pUser != nullptr) {
-					pUser->get_records().push_back(game);
-					pUser->get_records().push_back(date);
-					pUser->get_records().push_back(time);
-					pUser->get_records().push_back(lengthOfPlay);
+					pUser->push_records(gameTitle, date, time, lenghtOfPlay);
 				}
 			}
 			file.close();
@@ -249,7 +246,7 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 					tmp += ";";
 				}
 				if (rPlayer->get_username() == username) {
-					timeString = getTime();
+					timeString = getDate();
 					string id = to_string(rGame->get_game_id()) + ";";
 					tmp += id;
 					tmp += timeString;
@@ -265,7 +262,7 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 				}
 			}
 			if (!isStoredGame) {
-				tmp = rPlayer->get_username() + ";" + to_string(rGame->get_game_id()) + ";" + getTime() + ";";
+				tmp = rPlayer->get_username() + ";" + to_string(rGame->get_game_id()) + ";" + getDate() + ";";
 				rPlayer->set_purchased_time(timeString);
 				if (newFile.is_open()) {
 					newFile << tmp;
@@ -277,7 +274,7 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 		} else {
 			username = rPlayer->get_username();
 			gameId = to_string(rGame->get_game_id());
-			tmp = username + ";" + gameId + ";" + getTime() + ";";
+			tmp = username + ";" + gameId + ";" + getDate() + ";";
 			rPlayer->set_purchased_time(timeString);
 			if (newFile.is_open()) {
 				newFile << tmp;
@@ -294,7 +291,7 @@ void DatabaseManager::store_purchased_game(PlayerUser* rPlayer, Game* rGame) {
 	}
 }
 
-string DatabaseManager::getTime() {
+string DatabaseManager::getDate() {
 	string timeString;
 	time_t rawtime = time(0);
 	struct tm timeinfo;
@@ -302,6 +299,12 @@ string DatabaseManager::getTime() {
 	result = localtime_s(&timeinfo, &rawtime);
 	timeString = to_string(timeinfo.tm_mday) + "/" + to_string(timeinfo.tm_mon + 1) + "/" + to_string(timeinfo.tm_year + 1900);
 	return timeString;
+}
+
+const string DatabaseManager::getTime() const{
+	SYSTEMTIME time;
+	GetLocalTime(&time);
+	return (to_string(time.wHour) + ":" + to_string(time.wMinute) + ":" + to_string(time.wSecond));
 }
 
 const map<UserBase::Username, UserBase*> DatabaseManager::get_all_users() const {
@@ -367,19 +370,18 @@ void DatabaseManager::store_newUser(const UserBase::Username& user, const string
 	}
 }
 
-void DatabaseManager::store_playedGame_records(const PlayerUser* rPlayer, const Game* rGame, const string& tDate, const double tTime) {
+void DatabaseManager::store_playedGame_records(PlayerUser* rPlayer, const Game* rGame, const string& tDate, const double tLength) {
 	ofstream outFile("listOfRecords.txt", ios::app);
 	string username = rPlayer->get_username();
-	string game = to_string(rGame->get_game_id());
+	string gameTitle = rGame->get_title();
 	string date = tDate;
-	string time = to_string(tTime);
+	string time = getTime();
+	string length = to_string(tLength);
 
 	if (outFile.is_open()) {
-		outFile << username << ';' << game << ';' << date << ';' << time << ';' << endl;
+		outFile << username << ';' << gameTitle << ';' << date << ';' << time << ";" << length << ';' << endl;
 		outFile.close();
-		rPlayer->get_records().push_back(rGame->get_title());
-		rPlayer->get_records().push_back(date);
-		rPlayer->get_records().push_back(time);
+		rPlayer->push_records(rGame->get_title(), date, time, length);
 	}
 	else {
 		cerr << "Couldn't open the file!";

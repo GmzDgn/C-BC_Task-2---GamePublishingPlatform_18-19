@@ -136,7 +136,7 @@ void AdminUser::view_statistics() {
 
 	if (option == '1') {
 		if (!allUsers.empty()) {
-			for (auto it : allUsers) { 
+			for (auto it : allUsers) {
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
 					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
 					for (auto it : pPlayer->get_myGames()) {
@@ -151,14 +151,30 @@ void AdminUser::view_statistics() {
 		}
 	}
 	else {
+		string date, time, game, player, length;
 		if (!allUsers.empty()) {
 			for (auto it : allUsers) {
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
 					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
-					for (auto it : pPlayer->get_records()) {
-						cout << "Player '" << pPlayer->get_username() << "' played '" << 
+					list<string> listRecords = pPlayer->get_records();
+					list<string>::const_iterator it2 = listRecords.begin();
+					if (listRecords.size() > 0) {
+						cout << "'" << pPlayer->get_username() << "' played '";
+						while (it2 != listRecords.end()) {
+							game = *it2;
+							cout << game << "' on ";
+							date = *(++it2);
+							cout << date << " at ";
+							time = *(++it2);
+							cout << time << " ";
+							length = *(++it2);
+							cout << length << " seconds long\n";
+							++it2;
+						}
+					}
 				}
 			}
+			cout << endl;
 		}
 	}
 }
@@ -267,7 +283,7 @@ void PlayerUser::play_game() {
 	CStopWatch stopwatch;
 	stopwatch.startTimer();
 
-	string date = DatabaseManager::instance().getTime();
+	string date = DatabaseManager::instance().getDate();
 
 	cout << pGame->get_title() << " IS LAUNCHING..." << endl << endl;
 	while (result == 0) {
@@ -277,11 +293,14 @@ void PlayerUser::play_game() {
 		switch (option)
 		{	
 		case 'q': 
+		{
 			stopwatch.stopTimer(); 
-			double time = stopwatch.getElapsedTime();
-			DatabaseManager::instance().store_playedGame_records(this, pGame, date, time);
+			double length = stopwatch.getElapsedTime();
+			DatabaseManager::instance().store_playedGame_records(this, pGame, date, length);
+
 			result = -1; 
 			break;
+		}
 		default:  cout << "INAVLID OPTION\n"; break;
 		}
 	}
@@ -326,9 +345,17 @@ const string PlayerUser::get_purchased_time() const {
 map<Game::GameId, Game*> PlayerUser::get_myGames() {
 	return m_myGames;
 }
-list<string> PlayerUser::get_records() const {
+list<string> PlayerUser::get_records() {
 	return l_records;
 }
+
+void PlayerUser::push_records(const string & game, const string & date, const string & time, const string & length) {
+	l_records.push_back(game);
+	l_records.push_back(date);
+	l_records.push_back(time);
+	l_records.push_back(length);
+}
+
 //------------PlayerUser------------
 
 

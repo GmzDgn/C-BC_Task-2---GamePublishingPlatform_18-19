@@ -91,7 +91,9 @@ public:
 
 	map<Game::GameId, Game*> get_myGames();
 
-	list<string> get_records() const;
+	list<string> get_records();
+
+	void push_records(const string & game, const string & date, const string & time, const string & length);
 
 	//	virtual ~PlayerUser();
 
