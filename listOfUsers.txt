@@ -2,3 +2,5 @@ Gamze 123 gamze@hotmail.de admin 0.0 0
 Ozgun 123 ozgun@outlook.com admin 0.0 0
 Nily 123 nily@hotmail.de player 70.000000 22
 Michael 123 michael@hotmail.com player 55.000000 16
+Guest - bilge@hotmail.de guest 0.0 0
+Guest - caner@outlook.com guest 0.0 0

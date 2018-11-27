@@ -174,18 +174,16 @@ int MenuSystem::run_login_as_guest()
 	// in this menu we get the username and password.
 	string email;
 
-	cout << "Login Menu\n";
-	cout << "Email address: ";
+	cout << "Login Menu for Guests\n";
+	cout << "Please enter your email address: ";
 	cin >> email;
 
 	auto pGuest = DatabaseManager::instance().find_guest(email);
-	if (pGuest != nullptr) {
-		cout << "Hi guest!" << endl;
-		cout << "Maybe you want to sign up and play games?" << endl;
+	if (pGuest == nullptr) {
+		DatabaseManager::instance().store_newUser("Guest", "-", email, "guest", 0);
 	}
-	else {
-		//IN DIE FILELISTE EINFÜGEN
-	}
+	cout << endl << "Hi guest!" << endl;
+	cout << "Maybe you want to sign up and play games?" << endl << endl;
 
 	return 0;
 }

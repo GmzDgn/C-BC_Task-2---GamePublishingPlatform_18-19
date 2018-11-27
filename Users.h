@@ -21,6 +21,7 @@ enum class UserTypeId
 	kInvalid = 0
 	, kPlayerUser
 	, kAdminUser
+	, kGuestUser
 };
 
 //--

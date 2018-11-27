@@ -367,9 +367,10 @@ void DatabaseManager::store_newUser(const UserBase::Username& user, const string
 		outFile.close();
 		if (usertype == "admin") {
 			add_user(new AdminUser(username, password, email));
-		}
-		else {
+		} else if (usertype == "player") {
 			add_user(new PlayerUser(username, password, email, age, stod(funds)));
+		} else if (usertype == "guest") {
+			add_user(new Guest(username, password, email));
 		}
 	} else {
 		cerr << "Textfile doesn't exist!";
