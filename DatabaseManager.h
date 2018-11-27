@@ -35,6 +35,8 @@ public:
 
 	void load_game_of_user();
 
+	void load_records();
+
 	// Write all the data to storage.
 	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription);
 
@@ -45,6 +47,8 @@ public:
 	void store_purchased_game(PlayerUser* rPlayer, Game* rGame);
 
 	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type);
+
+	void store_playedGame_records(const PlayerUser* rPlayer, const Game* rGame, const string& date, const douvble time);
 
 	void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
@@ -99,6 +103,7 @@ public:
 
 	const map<UserBase::Username, UserBase*> get_all_users() const;
 
+
 private:
 	// Constructors are private for singleton pattern.f
 	DatabaseManager();
@@ -115,5 +120,6 @@ private:
 	UserContainer m_users;
 	GameContainer m_games;
 	GuestContainer l_guest;
+	string a_records[][4];
 };
 

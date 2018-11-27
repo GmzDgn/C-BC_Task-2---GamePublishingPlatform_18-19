@@ -7,7 +7,9 @@
 #include <list>
 #include <map>
 #include <iostream>
+
 #include "Game.h"
+#include "Stopwatch.h"
 
 using namespace std;
 
@@ -56,7 +58,7 @@ private:
 class PlayerUser : public UserBase {
 public:
 	// storing all the games that exists
-	//using GameList = list<Game::GameId>;
+	using RecordList = list<string>;
 	using MyGameList = map<Game::GameId, Game*>;
 	// calls UserBase constructor and initializes the fund of the player
 	PlayerUser(const Username& username, const string& password, const string& email, const double fund);
@@ -85,15 +87,18 @@ public:
 
 	void set_purchased_time(const string& timestemp);
 
-	string get_purchased_time();
+	const string get_purchased_time() const;
 
 	map<Game::GameId, Game*> get_myGames();
+
+	list<string> get_records() const;
 
 	//	virtual ~PlayerUser();
 
 private:
 	//GameList m_ownedGames; // List of owned games.
 	MyGameList m_myGames;
+	RecordList l_records;
 	double m_accountFunds = 0.0; // The players available funds.
 	string time;
 };

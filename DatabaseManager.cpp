@@ -22,6 +22,7 @@ void DatabaseManager::load_data() {
 	load_list_users();
 	load_list_games();
 	load_game_of_user();
+	load_records();
 }
 
 void DatabaseManager::load_list_users() {
@@ -83,6 +84,35 @@ void DatabaseManager::load_game_of_user() {
 			}
 		}
 		file.close();
+	} else {
+		cerr << "Couldn't open the file!";
+	}
+}
+
+void DatabaseManager::load_records() {
+	string lengthOfPlay, date, time, username, game, readFile;
+	ifstream file("listOfRecords.txt");
+	int x = -1;
+
+	if (file.is_open()) {
+		if (!(file.peek() == ifstream::traits_type::eof())) {
+			while (getline(file, readFile)) {
+				username = getVariable(readFile);
+				game = getVariable(readFile);
+				date = stod(getVariable(readFile));
+				time = stod(getVariable(readFile));
+				lengthOfPlay = getVariable(readFile);
+				
+				auto pUser = dynamic_cast<PlayerUser*>(find_user(username));
+				if (pUser != nullptr) {
+					pUser->get_records().push_back(game);
+					pUser->get_records().push_back(date);
+					pUser->get_records().push_back(time);
+					pUser->get_records().push_back(lengthOfPlay);
+				}
+			}
+			file.close();
+		}
 	} else {
 		cerr << "Couldn't open the file!";
 	}
@@ -335,6 +365,26 @@ void DatabaseManager::store_newUser(const UserBase::Username& user, const string
 	} else {
 		cerr << "Textfile doesn't exist!";
 	}
+}
+
+void DatabaseManager::store_playedGame_records(const PlayerUser* rPlayer, const Game* rGame, const string& tDate, const double tTime) {
+	ofstream outFile("listOfRecords.txt", ios::app);
+	string username = rPlayer->get_username();
+	string game = to_string(rGame->get_game_id());
+	string date = tDate;
+	string time = to_string(tTime);
+
+	if (outFile.is_open()) {
+		outFile << username << ';' << game << ';' << date << ';' << time << ';' << endl;
+		outFile.close();
+		rPlayer->get_records().push_back(rGame->get_title());
+		rPlayer->get_records().push_back(date);
+		rPlayer->get_records().push_back(time);
+	}
+	else {
+		cerr << "Couldn't open the file!";
+	}
+	outFile.close();
 }
 
 void DatabaseManager::add_user(UserBase* pUser) {

@@ -126,6 +126,8 @@ void AdminUser::remove_game() {
 }
 
 void AdminUser::view_statistics() {
+	auto allUsers = DatabaseManager::instance().get_all_users();
+
 	cout << "(1) Purchase statistics\n";
 	cout << "(2) Game statistics\n";
 
@@ -133,8 +135,6 @@ void AdminUser::view_statistics() {
 	cin >> option;
 
 	if (option == '1') {
-		//Alle User bekommen und mit find den ersten finden und daraus mit getter das game rausholen (map)
-		auto allUsers = DatabaseManager::instance().get_all_users();
 		if (!allUsers.empty()) {
 			for (auto it : allUsers) { 
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
@@ -148,6 +148,17 @@ void AdminUser::view_statistics() {
 		}
 		else {
 			cout << "The list is empty. No games are defined yet." << endl;
+		}
+	}
+	else {
+		if (!allUsers.empty()) {
+			for (auto it : allUsers) {
+				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
+					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
+					for (auto it : pPlayer->get_records()) {
+						cout << "Player '" << pPlayer->get_username() << "' played '" << 
+				}
+			}
 		}
 	}
 }
@@ -241,7 +252,6 @@ void PlayerUser::buy_game() {
 }
 
 void PlayerUser::add_game_to_list(Game* pGame) {
-	//m_ownedGames.push_back(id);
 	m_myGames.insert(make_pair(pGame->get_game_id(), pGame));
 }
 
@@ -253,6 +263,12 @@ void PlayerUser::play_game() {
 	string id;
 	cin >> id;
 	auto pGame = DatabaseManager::instance().find_game(stoi(id));
+
+	CStopWatch stopwatch;
+	stopwatch.startTimer();
+
+	string date = DatabaseManager::instance().getTime();
+
 	cout << pGame->get_title() << " IS LAUNCHING..." << endl << endl;
 	while (result == 0) {
 		cout << "(q) Quit game\n";
@@ -260,7 +276,12 @@ void PlayerUser::play_game() {
 		cin >> option;
 		switch (option)
 		{	
-		case 'q': result = -1; break;
+		case 'q': 
+			stopwatch.stopTimer(); 
+			double time = stopwatch.getElapsedTime();
+			DatabaseManager::instance().store_playedGame_records(this, pGame, date, time);
+			result = -1; 
+			break;
 		default:  cout << "INAVLID OPTION\n"; break;
 		}
 	}
@@ -278,10 +299,9 @@ void PlayerUser::gift_another_player() {
 			getline(cin, gameToGift);
 			auto pGame = DatabaseManager::instance().find_game_by_title(gameToGift);
 			auto myGames = get_game_list();
-			for (map< Game::GameId, Game*> ::const_iterator it = myGames.begin(); it != myGames.end(); ++it) {
+			for (map<Game::GameId, Game*> ::const_iterator it = myGames.begin(); it != myGames.end(); ++it) {
 				if (it->first == pGame->get_game_id()) {
 					listOfUserToGift.insert(make_pair(pGame->get_game_id(), pGame));
-					//push_back(pGame->get_game_id());
 					DatabaseManager::instance().store_purchased_game(userToGift, pGame);
 					myGames.erase(it);
 					DatabaseManager::instance().delete_game_of_user(this, pGame);
@@ -300,11 +320,14 @@ void PlayerUser::set_purchased_time(const string& timestemp) {
 	time = timestemp;
 }
 
-string PlayerUser::get_purchased_time() {
+const string PlayerUser::get_purchased_time() const {
 	return time;
 }
-map<Game::GameId, Game*> PlayerUser::get_myGames(){
+map<Game::GameId, Game*> PlayerUser::get_myGames() {
 	return m_myGames;
+}
+list<string> PlayerUser::get_records() const {
+	return l_records;
 }
 //------------PlayerUser------------
 
