@@ -42,11 +42,11 @@ public:
 
 	void modify_user(const string& username, const double newFund);
 
-	void store_newGame(const string& gameTitle, const string& description, const double price);
+	void store_newGame(const string& gameTitle, const string& description, const double gamePrice, const int rAgeLimit);
 
 	void store_purchased_game(PlayerUser* rPlayer, Game* rGame);
 
-	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type);
+	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type, const int age);
 
 	void store_playedGame_records(PlayerUser* rPlayer, const Game* rGame, const string& tDate, const double tLength);
 
@@ -71,6 +71,7 @@ public:
 	{
 		if (!m_users.empty()) {
 			for (auto it : m_users) { func(*it.second); }
+			cout << endl;
 		}
 		else {
 			cout << "There is no user in the list." << endl;

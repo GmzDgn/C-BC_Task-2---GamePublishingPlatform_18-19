@@ -12,10 +12,12 @@ MenuSystem& MenuSystem::instance()
 
 void MenuSystem::list_all_games() const
 {
+	cout << endl << "All games: " << endl;
 	auto gameVisitorLambda = [](const Game& rGame) {
-		cout << "ID: " << rGame.get_game_id() << " / " << rGame.get_title() << ": " << rGame.get_desc() << " / Price: " << rGame.get_price() << endl;
+		cout << "ID: " << rGame.get_game_id() << " / " << rGame.get_title() << ": " << rGame.get_desc() << " / Price: " << rGame.get_price() << " / Age limit: " << rGame.get_ageLimit() << endl;
 	};
 	DatabaseManager::instance().visit_games(gameVisitorLambda);
+	cout << endl;
 }
 
 int MenuSystem::run_login_screen()
@@ -148,7 +150,7 @@ int MenuSystem::run_player_user_menu()
 		{
 		case '1': list_all_games(); break;
 		case '2': pPlayerUser->output_game_list(); break;
-		case '3': pPlayerUser->buy_game(); break;
+		case '3': list_all_games();	pPlayerUser->buy_game(); break;
 		case '4': pPlayerUser->add_funds(); break;
 		case '5': pPlayerUser->search_game_by_title(); break;
 		case '6': pPlayerUser->play_game(); break;

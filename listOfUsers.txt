@@ -1,4 +1,4 @@
-gamze 123 g admin 0.0
-oez 123 o admin 0.0
-nily 123 n player 74.000000
-sena 123 s player 100
+Gamze 123 gamze@hotmail.de admin 0.0 0
+Ozgun 123 ozgun@outlook.com admin 0.0 0
+Nily 123 nily@hotmail.de player 70.000000 22
+Michael 123 michael@hotmail.com player 55.000000 16

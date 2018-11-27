@@ -61,7 +61,7 @@ public:
 	using RecordList = list<string>;
 	using MyGameList = map<Game::GameId, Game*>;
 	// calls UserBase constructor and initializes the fund of the player
-	PlayerUser(const Username& username, const string& password, const string& email, const double fund);
+	PlayerUser(const Username& username, const string& password, const string& email, const int age, const double fund);
 	// define the specific user type.
 	virtual const UserTypeId  get_user_type() const override;
 	// you can get the whole game list
@@ -95,6 +95,8 @@ public:
 
 	void push_records(const string & game, const string & date, const string & time, const string & length);
 
+	const int get_age_of_player() const;
+
 	//	virtual ~PlayerUser();
 
 private:
@@ -102,6 +104,7 @@ private:
 	MyGameList m_myGames;
 	RecordList l_records;
 	double m_accountFunds = 0.0; // The players available funds.
+	int m_age;
 	string time;
 };
 
