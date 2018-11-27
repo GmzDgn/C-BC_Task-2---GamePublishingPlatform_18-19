@@ -195,10 +195,12 @@ void DatabaseManager::delete_game(const string& gameId) {
 			id = readFile.substr(0, pos);
 			if (newFile.is_open()) {
 				if (gameId != id) {
-					newFile << readFile;
+					newFile << readFile << endl;
 				}
 				else {
 					m_games.erase(stoi(gameId));
+					delete_game_from_listOfUserGames(gameId);
+
 				}
 			} else {
 				cerr << "Couldn't open the file!";
@@ -209,6 +211,55 @@ void DatabaseManager::delete_game(const string& gameId) {
 		remove("listOfGames.txt");
 		rename("listOfTheGames.txt", "listOfGames.txt");
 	} else {
+		cerr << "Couldn't open the file!";
+	}
+}
+
+void DatabaseManager::delete_game_from_listOfUserGames(const string& gameId) {
+	string readFile, username, id, tmp, purchaseDate;
+	ifstream file("listOfUserGames.txt", ios::app);
+	ofstream newFile("listOfTheUserGames.txt");
+	bool isErased = false;
+
+	if (file.is_open()) {
+		while (getline(file, readFile)) {
+			username = getVariable(readFile);
+			tmp = username + ";";
+			while ((id = getVariable(readFile)) != "") {
+				purchaseDate = getVariable(readFile);
+				if (newFile.is_open()) {
+					if (gameId != id) {
+						tmp += id + ";" + purchaseDate + ";";
+						newFile << tmp;
+					} else {
+						auto findPlayer = find_user(username);
+						if (findPlayer != nullptr) {
+							auto pPlayer = dynamic_cast<PlayerUser*>(findPlayer);
+							auto myGames = pPlayer->get_game_list();
+							myGames.erase(stoi(gameId));
+							if (myGames.size() == 0) {
+								isErased = true;
+							}
+						}
+					}
+				}
+				else {
+					cerr << "Couldn't open the file!";
+				}
+			}
+			if (!isErased) {
+				newFile << endl;
+			}
+			else {
+				isErased = false;
+			}
+		}
+		file.close();
+		newFile.close();
+		remove("listOfUserGames.txt");
+		rename("listOfTheUserGames.txt", "listOfUserGames.txt");
+	}
+	else {
 		cerr << "Couldn't open the file!";
 	}
 }

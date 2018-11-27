@@ -78,6 +78,8 @@ public:
 		}
 	}
 
+	void delete_game_from_listOfUserGames(const string& gameId);
+
 	// Adds a game to the db.
 	void add_game(Game& rGame);
 
