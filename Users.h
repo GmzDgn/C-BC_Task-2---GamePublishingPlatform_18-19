@@ -80,6 +80,8 @@ public:
 	void output_game_list();
 	// you can search a game by title
 	void search_game_by_title();
+
+	void search_game_by_ageLimit();
 	// you can buy a game if your funds are sufficient
 	void buy_game();
 	// you can choose a game to play

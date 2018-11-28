@@ -512,6 +512,23 @@ Game* DatabaseManager::find_game_by_title(string& title) {
 	return nullptr;
 }
 
+void DatabaseManager::find_game_by_ageLimit(const int age) {
+	int ageLimit;
+	bool found = false;
+	auto it = m_games.begin();
+	while (it != m_games.end()) {
+		ageLimit = it->second.get_ageLimit();
+		if (ageLimit >= age) {
+			cout << endl << "Title: " << it->second.get_title() << " / Age limit: " << it->second.get_ageLimit() << endl << endl;
+			found = true;
+		}
+		++it;
+	}
+	if (!found) {
+		cout << endl << "No game defined with this age limit." << endl << endl;
+	}
+}
+
 string DatabaseManager::to_lower_string(string& lowerString) {
 	string searchLowerTitle;
 	for (int i = 0; i <= lowerString.length(); ++i) {

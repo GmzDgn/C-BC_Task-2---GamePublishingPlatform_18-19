@@ -89,6 +89,8 @@ public:
 
 	Game* find_game_by_title(string& title);
 
+	void find_game_by_ageLimit(const int age);
+
 	string to_lower_string(string& lowerString);
 
 	void delete_game(const string& gameId);

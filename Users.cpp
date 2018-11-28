@@ -255,6 +255,12 @@ void PlayerUser::search_game_by_title() {
 		cout << "Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << " / Price: " << pGame->get_price() << endl << endl;
 	}
 }
+void PlayerUser::search_game_by_ageLimit() {
+	cout << "Enter the age: ";
+	string age;
+	cin >> age;
+	DatabaseManager::instance().find_game_by_ageLimit(stoi(age));
+}
 void PlayerUser::buy_game() {
 	Game* pGame = nullptr;
 	double gamePrice = 0;
@@ -293,36 +299,41 @@ void PlayerUser::add_game_to_list(Game* pGame) {
 
 void PlayerUser::play_game() {
 	int result = 0;
-	cout << "Which game do you want to play?" << endl;
-	output_game_list();
-	cout << "Please enter the ID to launch the game: ";
-	string id;
-	cin >> id;
-	auto pGame = DatabaseManager::instance().find_game(stoi(id));
+	cout << endl << "Which game do you want to play?" << endl;
+	if (!m_myGames.empty()) {
+		output_game_list();
+		cout << "Please enter the ID to launch the game: ";
+		string id;
+		cin >> id;
+		auto pGame = DatabaseManager::instance().find_game(stoi(id));
 
-	CStopWatch stopwatch;
-	stopwatch.startTimer();
+		CStopWatch stopwatch;
+		stopwatch.startTimer();
 
-	string date = DatabaseManager::instance().getDate();
+		string date = DatabaseManager::instance().getDate();
 
-	cout << pGame->get_title() << " IS LAUNCHING..." << endl << endl;
-	while (result == 0) {
-		cout << "(q) Quit game\n";
-		char option;
-		cin >> option;
-		switch (option)
-		{	
-		case 'q': 
-		{
-			stopwatch.stopTimer(); 
-			double length = stopwatch.getElapsedTime();
-			DatabaseManager::instance().store_playedGame_records(this, pGame, date, length);
+		cout << pGame->get_title() << " IS LAUNCHING..." << endl << endl;
+		while (result == 0) {
+			cout << "(q) Quit game\n";
+			char option;
+			cin >> option;
+			switch (option)
+			{
+			case 'q':
+			{
+				stopwatch.stopTimer();
+				double length = stopwatch.getElapsedTime();
+				DatabaseManager::instance().store_playedGame_records(this, pGame, date, length);
 
-			result = -1; 
-			break;
+				result = -1;
+				break;
+			}
+			default:  cout << "INAVLID OPTION\n"; break;
+			}
 		}
-		default:  cout << "INAVLID OPTION\n"; break;
-		}
+	}
+	else {
+		cout << "Your bag is empty" << endl << endl;
 	}
 }
 void PlayerUser::gift_another_player() {

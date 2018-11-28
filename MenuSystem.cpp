@@ -151,7 +151,16 @@ int MenuSystem::run_player_user_menu()
 		case '2': pPlayerUser->output_game_list(); break;
 		case '3': list_all_games();	pPlayerUser->buy_game(); break;
 		case '4': pPlayerUser->add_funds(); break;
-		case '5': pPlayerUser->search_game_by_title(); break;
+		case '5':
+			cout << "(1) Search by title\n";
+			cout << "(2) Search by age limit\n";
+			char option;
+			cin >> option;
+			if (option == '1') {
+				pPlayerUser->search_game_by_title(); break;
+			} else {
+				pPlayerUser->search_game_by_ageLimit(); break;
+			}
 		case '6': pPlayerUser->play_game(); break;
 		case '7': pPlayerUser->gift_another_player(); break;
 		case 'q': result = -1; break;
