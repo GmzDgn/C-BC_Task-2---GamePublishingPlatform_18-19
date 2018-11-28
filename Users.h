@@ -22,6 +22,7 @@ enum class UserTypeId
 	, kPlayerUser
 	, kAdminUser
 	, kGuestUser
+	, kGameStudioUser
 };
 
 //--
@@ -135,6 +136,21 @@ public:
 };
 
 class Guest : public UserBase {
+public:
 	using UserBase::UserBase;
 	virtual const UserTypeId get_user_type() const override;
+};
+
+class GameStudio : public UserBase {
+public:
+	using GameList = list<Game>;
+	using UserBase::UserBase;
+	virtual const UserTypeId get_user_type() const override;
+	void set_version();
+	float const get_version(const string& gameId) const;
+	void add_game_to_list(const Game& rGame);
+	const list<Game> get_gameLIst() const;
+	const void output_gameList() const;
+private:
+	GameList l_gameList;
 };

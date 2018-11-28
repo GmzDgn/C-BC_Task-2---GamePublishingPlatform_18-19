@@ -38,11 +38,12 @@ public:
 	void load_records();
 
 	// Write all the data to storage.
-	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription);
+	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription, const string& newVersion);
 
 	void modify_user(const string& username, const double newFund);
 
-	void store_newGame(const string& gameTitle, const string& description, const double gamePrice, const int rAgeLimit);
+	void store_newGame(const string& gameTitle, const string& description, const double gamePrice
+		, const int rAgeLimit, const string& studio);
 
 	void store_purchased_game(PlayerUser* rPlayer, Game* rGame);
 

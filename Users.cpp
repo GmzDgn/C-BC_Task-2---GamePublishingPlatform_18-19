@@ -41,7 +41,7 @@ const UserTypeId AdminUser::get_user_type() const {
 }
 
 void AdminUser::add_user() {
-	string username, password, email, usertype, age;
+	string username, password, email, usertype, age = "0";
 	cout << "Add a new user. Please enter an username: ";
 	cin >> username;
 	while (!(DatabaseManager::instance().find_user(username) == nullptr)) {
@@ -56,20 +56,26 @@ void AdminUser::add_user() {
 		cout << "This email is already taken. Please choose another one: ";
 		cin >> email;
 	}
-	cout << "Please enter the age of the player: ";
-	cin >> age;
-	cout << "Usertype: admin or player? (a/p): ";
+	cout << "Usertype: admin, player or gamestudio? (a/p/g): ";
 	cin >> usertype;
 	while (!(usertype != "a" || usertype != "admin" || usertype != "Admin"
-		|| usertype != "p" || usertype != "player" || usertype != "Player")) {
+		|| usertype != "p" || usertype != "player" || usertype != "Player" 
+		|| usertype != "GameStudio" || usertype != "gamestudio")) {
 		cout << "Please enter a valid usertype (a/p): ";
 		cin >> usertype;
 	}
 	if (usertype == "a" || usertype == "admin" || usertype == "Admin") {
 		usertype = "admin";
 	}
-	else {
+	else if(usertype == "p" || usertype == "player" || usertype == "Player"){
 		usertype = "player";
+	}
+	else {
+		usertype = "gamestudio";
+	}
+	if (usertype != "gamestudio") {
+		cout << "Please enter the age of the player: ";
+		cin >> age;
 	}
 	DatabaseManager::instance().store_newUser(username, password, email, usertype, stoi(age));
 	cout << endl << "You have added the user '" << username << "' successfully!" << endl << endl;
@@ -77,19 +83,26 @@ void AdminUser::add_user() {
 
 void AdminUser::add_game() {
 	double price;
-	string title, desc, ageLimit;
+	string title, desc, ageLimit, gamestudio;
 
 	cout << "Add a new game. Please enter a title: ";
 	cin >> title;
-	cout << "Define a price for this game: ";
-	cin >> price;
-	cout << "Define an age limit for this game: ";
-	cin >> ageLimit;
-	cout << "Please enter a short description: ";
-	cin.ignore();
-	getline(cin, desc);
-	DatabaseManager::instance().store_newGame(title, desc, price, stoi(ageLimit));
-	cout << endl << "You have added the game '" << title << "' successfully!" << endl << endl;
+	cout << "Enter the gamestudio: ";
+	cin >> gamestudio;
+	auto pGamestudio = DatabaseManager::instance().find_user(gamestudio);
+	if (pGamestudio != nullptr) {
+		cout << "Define a price for this game: ";
+		cin >> price;
+		cout << "Define an age limit for this game: ";
+		cin >> ageLimit;
+		cout << "Please enter a short description: ";
+		cin.ignore();
+		getline(cin, desc);
+		DatabaseManager::instance().store_newGame(title, desc, price, stoi(ageLimit), pGamestudio->get_username());
+		cout << endl << "You have added the game '" << title << "' successfully!" << endl << endl;
+	} else {
+		cout << "This gamestudio doesn't exist!";
+	}
 }
 
 void AdminUser::list_of_users() const
@@ -109,13 +122,13 @@ void AdminUser::modify_game(Game*& game, const int option, const int gameId) {
 		cin.ignore();
 		getline(cin, tmp);
 		game->set_desc(tmp);
-		DatabaseManager::instance().modify_game(game, "", tmp);
+		DatabaseManager::instance().modify_game(game, "", tmp, "");
 	}
 	else {
 		cout << "Define a new price: ";
 		cin >> tmp;
 		game->set_price(stod(tmp));
-		DatabaseManager::instance().modify_game(game, tmp, "");
+		DatabaseManager::instance().modify_game(game, tmp, "", "");
 	}
 
 }
@@ -384,3 +397,46 @@ const UserTypeId Guest::get_user_type() const {
 }
 //------------Guest------------
 
+const UserTypeId GameStudio::get_user_type() const {
+	return UserTypeId::kGameStudioUser;
+}
+
+void GameStudio::set_version() {
+	output_gameList();
+	cout << "Please enter the ID of the game to change the version: ";
+	string id;
+	cin >> id;
+	auto pGame = DatabaseManager::instance().find_game(stoi(id));
+	if (pGame != nullptr) {
+		cout << "Enter a new version: ";
+		string version;
+		cin >> version;
+		int gameVer = stoi(version);
+		pGame->set_new_version(gameVer);
+		DatabaseManager::instance().modify_game(pGame, "", "", version);
+	}
+	else {
+		cout << "Couldn't find the game.";
+	}
+
+}
+
+float const GameStudio::get_version(const string& gameId) const {
+	auto pGame = DatabaseManager::instance().find_game(stoi(gameId));
+	return pGame->get_version();
+}
+
+void GameStudio::add_game_to_list(const Game& rGame) {
+	l_gameList.push_back(rGame);
+}
+
+const list<Game> GameStudio::get_gameLIst() const {
+	return l_gameList;
+}
+
+const void GameStudio::output_gameList() const {
+	cout << "Your games: " << endl;
+	for (list<Game>::const_iterator it = l_gameList.begin(); it != l_gameList.end(); ++it) {
+		cout << "ID: " << it->get_game_id() << " / Title: " << it->get_title() << " / Description: " << it->get_desc() << " / Version: " << it->get_version() << endl;
+	}
+}

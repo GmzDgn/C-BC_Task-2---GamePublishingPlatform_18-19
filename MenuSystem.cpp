@@ -14,7 +14,9 @@ void MenuSystem::list_all_games() const
 {
 	cout << endl << "All games: " << endl;
 	auto gameVisitorLambda = [](const Game& rGame) {
-		cout << "ID: " << rGame.get_game_id() << " / " << rGame.get_title() << ": " << rGame.get_desc() << " / Price: " << rGame.get_price() << " / Age limit: " << rGame.get_ageLimit() << endl;
+		cout << "ID: " << rGame.get_game_id() << " / " << rGame.get_title() << ": " << rGame.get_desc() << 
+			" / Price: " << rGame.get_price() << " / Age limit: " << rGame.get_ageLimit() << 
+			" / Game Studio: " << rGame.get_studio() << " / Version: " << rGame.get_version() << endl;
 	};
 	DatabaseManager::instance().visit_games(gameVisitorLambda);
 	cout << endl;
@@ -37,13 +39,10 @@ int MenuSystem::run_login_screen()
 
 	// find the user and check password
 	auto pUser = DatabaseManager::instance().find_user(username);
-	if (pUser && pUser->get_password() == password)
-	{
+	if (pUser && pUser->get_password() == password)	{
 		m_pUser = pUser;
 		cout << "Hi " << m_pUser->get_username() << "\n";
-	}
-	else
-	{
+	} else {
 		cout << "No such username or password!\n";
 	}
 	return 0;
@@ -188,6 +187,35 @@ int MenuSystem::run_login_as_guest()
 	return 0;
 }
 
+int MenuSystem::run_gamestudio_user_menu() {
+	GameStudio* pStudioUser = static_cast<GameStudio*>(m_pUser);
+	int result = 0;
+	do
+	{
+		cout << "Game Studio Menu (" << m_pUser->get_username() << ")\n";
+		cout << "(1) List My Games\n";
+		cout << "(2) Set New Version Of Game\n";
+		cout << "(q) Logout\n";
+
+		char option;
+		cin >> option;
+
+		switch (option)
+		{
+		case '1': pStudioUser->output_gameList(); break;
+		case '2': pStudioUser->set_version(); break;
+		case 'q': result = -1; break;
+		default:  cout << "INAVLID OPTION\n"; break;
+		}
+	} while (result == 0);
+
+	// force logout.
+	m_pUser = nullptr;
+	pStudioUser = nullptr;
+
+	return 0;
+}
+
 int MenuSystem::run_unknown_user_menu()
 {
 	// in this menu we get the username and password.
@@ -229,6 +257,7 @@ int MenuSystem::run()
 			{
 				case UserTypeId::kPlayerUser: result = run_player_user_menu(); break;
 				case UserTypeId::kAdminUser: result = run_admin_user_menu(); break;
+				case UserTypeId::kGameStudioUser: result = run_gamestudio_user_menu(); break;
 				default: result = -1; break;
 			}
 		}
