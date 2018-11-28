@@ -7,6 +7,10 @@
 #include <list>
 #include <map>
 #include <iostream>
+#include <vector>
+#include <algorithm>
+#include <vector>
+#include <iomanip>
 
 #include "Game.h"
 #include "Stopwatch.h"

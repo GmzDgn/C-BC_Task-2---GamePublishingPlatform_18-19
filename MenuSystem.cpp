@@ -74,7 +74,7 @@ int MenuSystem::run_admin_user_menu()
 		case '3': pAdminUser->add_game(); break;
 		case '4': pAdminUser->add_user(); break;
 		case '5': modify_game(); break;
-		case '6': pAdminUser->remove_game(); break;
+		case '6': list_all_games(); pAdminUser->remove_game(); break;
 		case '7': pAdminUser->view_statistics(); break;
 		case 'q': result = -1; break;
 		default:  cout << "INAVLID OPTION\n"; break;
@@ -89,8 +89,6 @@ int MenuSystem::run_admin_user_menu()
 }
 
 void MenuSystem::modify_game() {
-
-	//ES gibt eine Methode find_game für das
 	Game* m_pGame = nullptr;
 	AdminUser* pAdminUser = static_cast<AdminUser*>(m_pUser);
 

@@ -38,6 +38,10 @@ public:
 
 	const int get_version() const { return m_version; }
 
+	const int get_counterPurchased() const { return counterPurchased; }
+
+	const int get_counterPlayed() const { return counterPlayed; }
+
 	void set_title(const string& val) { m_title = val; }
 
 	void set_price(const double val) { m_price = val; }
@@ -50,6 +54,10 @@ public:
 
 	void set_new_version(const int val) { m_version = val; }
 
+	void increment_counterPurchased() { ++counterPurchased; }
+
+	void increment_counterPlayed() { ++counterPlayed; }
+
 private:
 	const GameId m_gameId;	// Numerical identifier for a game  (unique key).
 	string m_title; // The game title.
@@ -58,6 +66,8 @@ private:
 	int m_ageLimit; // Game can have an age limit.
 	string m_studio;
 	int m_version;
+	int counterPurchased = 0;
+	int counterPlayed = 0;
 };
 
 

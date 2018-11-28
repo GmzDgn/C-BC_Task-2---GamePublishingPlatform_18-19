@@ -25,48 +25,62 @@ class DatabaseManager
 public:
 	// Singleton instance definition.
 	static DatabaseManager& instance();
-
-	// Initialize the database from storage.
+	// Loads all data from the files.
 	void load_data();
-
+	// Loads the users from the file.
 	void load_list_users();
-
+	// Loads the games from the file.
 	void load_list_games();
-
+	// Loads games from the users from the file.
 	void load_game_of_user();
-
+	// Loads all records from the file for the statistics.
 	void load_records();
-
-	// Write all the data to storage.
-	void modify_game(Game*& rGame, const string& newPrice, const string& newDescription, const string& newVersion);
-
+	// Stores new users to the file.
+	void store_newUser(const UserBase::Username& username, const string& password, const string& email, const string& usertype, const int age);
+	// Stores new games to the file.
+	void store_newGame(const string& gameTitle, const string& description, const double gamePrice, const int rAgeLimit, const string& studio);
+	// Stores new purchased games to the file.
+	void store_purchased_game(PlayerUser* rPlayer, const Game* rGame);
+	// Stores the record of a played game (e.g. length of play) to the file.
+	void store_playedGame_records(PlayerUser* rPlayer, Game* rGame, const string& date, const double tLength);
+	// Modifies the game file (e.g. new description defined for a game).
+	void modify_game(Game*& pGame, const string& newPrice, const string& newDescription, const string& newVersion);
+	// Modifies the user file.
 	void modify_user(const string& username, const double newFund);
-
-	void store_newGame(const string& gameTitle, const string& description, const double gamePrice
-		, const int rAgeLimit, const string& studio);
-
-	void store_purchased_game(PlayerUser* rPlayer, Game* rGame);
-
-	void store_newUser(const UserBase::Username& user, const string& pw, const string& mail, const string& type, const int age);
-
-	void store_playedGame_records(PlayerUser* rPlayer, const Game* rGame, const string& tDate, const double tLength);
-
-	void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
-
-	// Adds a user to the db.
+	// deletes the game from the listOfUserGames file.
+	void delete_game_from_listOfUserGames(const string& gameId);
+	// deletes the particullary game from listOfGames file.
+	void delete_game(const string& gameId);
+	// Adds a user to the to file and to the map.
 	void add_user(UserBase* pUser);
-
+	// Adds a guest to the list.
 	void add_guest(UserBase* pUser);
-
-	bool find_email(const string& mail);
-
-	string getVariable(string& readFile);
-
+	// Adds a game to the file.
+	void add_game(const Game& rGame);
 	// Finds a user by username, return nullptr if the user is not found.
 	UserBase* find_user(const UserBase::Username& username);
-
+	// Finds a guest by email address, return nullptr if the guest is not found.
 	UserBase* find_guest(const string& email);
-
+	// Looks whether there is an email address yet or not. 
+	bool find_email(const string& email);
+	// Finds a game by id, returns nullptr if the game is not found.
+	Game* find_game(const Game::GameId gameid);
+	// Finds the game by title, returns nullptr if the game is not found.
+	Game* find_game_by_title(const string& title);
+	// Finds the game by the agelimit.
+	void find_game_by_ageLimit(const int age);
+	// Getter for the map to get all users. 
+	const map<UserBase::Username, UserBase*> get_all_users() const;
+	// gets the token from the file
+	string getVariable(string& readFile);
+	// get the current date and returns it as a string.
+	const string getDate() const;
+	// get the current time and returns it as a string.
+	const string getTime() const;
+	// returns the map with the games
+	const map<Game::GameId, Game> get_gameContainer() const;
+	// to lower the string.
+	string to_lower_string(const string& lowerString);
 	// iterating users using visitor pattern
 	template<typename Visitor> void visit_users(Visitor& func)
 	{
@@ -78,23 +92,6 @@ public:
 			cout << "There is no user in the list." << endl;
 		}
 	}
-
-	void delete_game_from_listOfUserGames(const string& gameId);
-
-	// Adds a game to the db.
-	void add_game(Game& rGame);
-
-	// Finds a game by id, returns nullptr if the game is not found.
-	Game* find_game(const Game::GameId gameid);
-
-	Game* find_game_by_title(string& title);
-
-	void find_game_by_ageLimit(const int age);
-
-	string to_lower_string(string& lowerString);
-
-	void delete_game(const string& gameId);
-
 	// iterating games using visitor pattern
 	template<typename Visitor> void visit_games(Visitor& func)
 	{
@@ -104,30 +101,23 @@ public:
 			cout << "The list is empty. No games are defined yet." << endl;
 		}
 	}
-
-	string getDate();
-
-	const string getTime() const;
-
-	const map<UserBase::Username, UserBase*> get_all_users() const;
-
+	// deletes a game from the file.
+//void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
 private:
 	// Constructors are private for singleton pattern.f
 	DatabaseManager();
 	~DatabaseManager();
 
-
 private:
-	int gameIdCounter = 0;
+	int gameIdCounter = 0; // Id counter for the games.
 	// Types
 	using UserContainer = map<UserBase::Username, UserBase*>;
 	using GameContainer = map<Game::GameId, Game>;
 	using GuestContainer = list<UserBase*>;
 
-	UserContainer m_users;
-	GameContainer m_games;
-	GuestContainer l_guest;
-	string a_records[][4];
+	UserContainer m_users; // Container for all users
+	GameContainer m_games; // Container for all games
+	GuestContainer l_guest; // List for all guests
 };
 

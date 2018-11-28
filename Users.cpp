@@ -135,7 +135,7 @@ void AdminUser::modify_game(Game*& game, const int option, const int gameId) {
 
 void AdminUser::remove_game() {
 	string id;
-	cout << "Please enter the id of the game to remove: ";
+	cout << "Please enter the ID of the game to remove: ";
 	cin >> id;
 
 	DatabaseManager::instance().delete_game(id);
@@ -144,38 +144,52 @@ void AdminUser::remove_game() {
 
 void AdminUser::view_statistics() {
 	auto allUsers = DatabaseManager::instance().get_all_users();
-
-	cout << "(1) Purchase statistics\n";
-	cout << "(2) Game statistics\n";
+	bool isRecords = false;
+	cout << "(1) Statistic Of All Purchases\n";
+	cout << "(2) History Of The Played Games\n";
+	cout << "(3) Most Popular Game\n";
+	cout << "(4) Average Game Price\n";
+	cout << "(5) Show Statistics Of The Players\n";
 
 	char option;
 	cin >> option;
 
-	if (option == '1') {
-		if (!allUsers.empty()) {
+	if (!allUsers.empty()) {
+		string date, time, game, player, length;
+		list<Game> mostPurchasedGamesList, mostPlayedGamesList;
+		int tmp, allPrices = 0, averagePrice = 0;
+		auto allGames = DatabaseManager::instance().get_gameContainer();
+		vector<int> vec;
+		string xlegend = "      ";
+
+		switch (option) {
+		case '1': 
 			for (auto it : allUsers) {
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
 					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
-					for (auto it : pPlayer->get_myGames()) {
-						cout << "Player '" << pPlayer->get_username() << "' has purchased '" << it.second->get_title() << "' on "
-							<< pPlayer->get_purchased_time() << endl;
+					if (pPlayer->get_myGames().size() > 0) {
+						isRecords = true;
+						for (auto it : pPlayer->get_myGames()) {
+							cout << "Player '" << pPlayer->get_username() << "' has purchased '" << it.second->get_title() << "' on "
+								<< pPlayer->get_purchased_time() << endl;
+						}
 					}
+					pPlayer = nullptr;
 				}
 			}
-		}
-		else {
-			cout << "The list is empty. No games are defined yet." << endl;
-		}
-	}
-	else {
-		string date, time, game, player, length;
-		if (!allUsers.empty()) {
+			if (!isRecords) {
+				cout << "There is no records to show!" << endl << endl;
+				isRecords = false;
+			}
+			break;
+		case '2':
 			for (auto it : allUsers) {
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
 					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
 					list<string> listRecords = pPlayer->get_records();
-					list<string>::const_iterator it2 = listRecords.begin();
 					if (listRecords.size() > 0) {
+						isRecords = true;
+						list<string>::const_iterator it2 = listRecords.begin();
 						cout << "'" << pPlayer->get_username() << "' played '";
 						while (it2 != listRecords.end()) {
 							game = *it2;
@@ -183,16 +197,108 @@ void AdminUser::view_statistics() {
 							date = *(++it2);
 							cout << date << " at ";
 							time = *(++it2);
-							cout << time << " ";
+							cout << time << ", ";
 							length = *(++it2);
-							cout << length << " seconds long\n";
+							cout << length << " seconds long.\n";
 							++it2;
 						}
 					}
+					pPlayer = nullptr;
 				}
 			}
-			cout << endl;
+			if (!isRecords) {
+				cout << "There is no records to show!" << endl << endl;
+				isRecords = false;
+			}
+			break;
+
+		case '3':
+			cout << "(1) Most Purchased Game" << endl;
+			cout << "(2) Most Played Game" << endl;
+
+			char option;
+			cin >> option;
+			if (option == '1') {
+				auto it = allGames.begin();
+				tmp = it->second.get_counterPurchased();
+				auto mostPurchasedGame = it;
+				++it;
+				while (it != allGames.end()) {
+					if (tmp <= it->second.get_counterPurchased()) {
+						if (tmp < it->second.get_counterPurchased()) {
+							tmp = it->second.get_counterPurchased();
+							mostPurchasedGamesList.clear();
+							mostPurchasedGame = it;
+						} else {
+							mostPurchasedGamesList.push_back(it->second);
+						}
+					}
+					++it;
+				}
+				if (mostPurchasedGamesList.empty()) {
+					cout << endl << "The most purchased game is: " << mostPurchasedGame->second.get_title() << " ("
+						<< mostPurchasedGame->second.get_counterPurchased() << " time(s))" << endl;
+				} else {
+					cout << endl << "The most purchased games are with " << mostPurchasedGame->second.get_counterPurchased() << " time(s):"
+						<< endl << "- " << mostPurchasedGame->second.get_title() << endl;
+					for (auto it : mostPurchasedGamesList) {
+						cout << "- " << it.get_title() << endl;
+					}
+					cout << endl;
+				}
+			} else {
+				auto it = allGames.begin();
+				tmp = it->second.get_counterPlayed();
+				auto mostPlayedGame = it;
+				++it;
+				while (it != allGames.end()) {
+					if (tmp <= it->second.get_counterPlayed()) {
+						if (tmp < it->second.get_counterPlayed()) {
+							tmp = it->second.get_counterPlayed();
+							mostPlayedGamesList.clear();
+							mostPlayedGame = it;
+						} else {
+							mostPlayedGamesList.push_back(it->second);
+						}
+					}
+					++it;
+				}
+				if (mostPlayedGamesList.empty()) {
+					cout << endl << "The most played game is: " << mostPlayedGame->second.get_title() << " ("
+						<< mostPlayedGame->second.get_counterPurchased() << " time(s))" << endl;
+				}
+				else {
+					cout << endl << "The most played games are with " << mostPlayedGame->second.get_counterPlayed() << " time(s):"
+						<< endl << "- " << mostPlayedGame->second.get_title() << endl;
+					for (auto it : mostPlayedGamesList) {
+						cout << "- " << it.get_title() << endl;
+					}
+					cout << endl;
+				}
+			}
+			break;
+		case '4':
+			for (auto it : allGames) {
+				allPrices += it.second.get_price();
+			}
+			averagePrice = allPrices / allGames.size();
+			cout << endl << "The average game price is: " << averagePrice << "\x9C" << endl;
+			break;
+		case '5':
+			xlegend.append("0-10");
+			xlegend.append("11-15");
+			xlegend.append("16-20");
+			xlegend.append("20-25");
+			xlegend.append("26-30");
+			xlegend.append("31-40");
+			xlegend.append("41-50+");
+
+
+			break;
+		default: cout << "INVALID OPTION!\n"; break;
 		}
+	} else {
+		cout << endl << "There is no records to show!" << endl;
 	}
 }
 //------------AdminUser------------
@@ -211,14 +317,15 @@ const UserTypeId PlayerUser::get_user_type() const {
 }
 
 void PlayerUser::output_game_list() {
-	cout << "Your bag:" << endl;
+	cout << endl << "Your bag:" << endl;
 	 if (!m_myGames.empty()) {
 		 for (auto it : m_myGames) {
 			 auto pGame = DatabaseManager::instance().find_game(it.first);
 			 cout << "ID: " << pGame->get_game_id() << " / Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << endl;
 		 }
+		 cout << endl;
 	 } else {
-		 cout << "The list is empty. No games are defined yet." << endl;
+		 cout << "The list is empty." << endl << endl;
 	 }
 }
 
@@ -249,7 +356,7 @@ void PlayerUser::search_game_by_title() {
 	
 	auto pGame = DatabaseManager::instance().find_game_by_title(title);
 	if (pGame == nullptr) {
-		cout << "The title which you entered is not existing" << endl << endl;
+		cout << "The title which you entered is not existing." << endl << endl;
 	}
 	else {
 		cout << "Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << " / Price: " << pGame->get_price() << endl << endl;
@@ -358,7 +465,8 @@ void PlayerUser::gift_another_player() {
 						listOfUserToGift.insert(make_pair(pGame->get_game_id(), pGame));
 						DatabaseManager::instance().store_purchased_game(userToGift, pGame);
 						myGames.erase(it);
-						DatabaseManager::instance().delete_game_of_user(this, pGame);
+						DatabaseManager::instance().delete_game_from_listOfUserGames(to_string(pGame->get_game_id()));
+						//DatabaseManager::instance().delete_game_of_user(this, pGame);
 						break;
 					}
 				}
