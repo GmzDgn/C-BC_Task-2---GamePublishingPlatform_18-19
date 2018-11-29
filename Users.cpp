@@ -149,7 +149,7 @@ void AdminUser::view_statistics() {
 	cout << "(2) History Of The Played Games\n";
 	cout << "(3) Most Popular Game\n";
 	cout << "(4) Average Game Price\n";
-	cout << "(5) Show Statistics Of The Players\n";
+	cout << "(5) Show Statistics Of The Ages In Percent\n";
 
 	char option;
 	cin >> option;
@@ -157,10 +157,12 @@ void AdminUser::view_statistics() {
 	if (!allUsers.empty()) {
 		string date, time, game, player, length;
 		list<Game> mostPurchasedGamesList, mostPlayedGamesList;
-		int tmp, allPrices = 0, averagePrice = 0;
+		list<int> agesOfThePlayers, agesSevenToEigtheen, agesNineteenToTwentyfive, agesTwentySixToThirtyfive
+			, agesThirtysixToFourtysix, agesOverFourtyseven;
+		int tmp, allPrices = 0, averagePrice = 0, totalSize;
+		double percentageSevenToEigtheen, percentageNineteenToTwentyfive
+			, percentageTwentysixToThirtyfive, percentageThirtysixToFourtysix, percentageOverFourtyseven;
 		auto allGames = DatabaseManager::instance().get_gameContainer();
-		vector<int> vec;
-		string xlegend = "      ";
 
 		switch (option) {
 		case '1': 
@@ -282,18 +284,44 @@ void AdminUser::view_statistics() {
 				allPrices += it.second.get_price();
 			}
 			averagePrice = allPrices / allGames.size();
-			cout << endl << "The average game price is: " << averagePrice << "\x9C" << endl;
+			cout << endl << "The average game price is: " << averagePrice << "\x9C" << endl << endl;
 			break;
 		case '5':
-			xlegend.append("0-10");
-			xlegend.append("11-15");
-			xlegend.append("16-20");
-			xlegend.append("20-25");
-			xlegend.append("26-30");
-			xlegend.append("31-40");
-			xlegend.append("41-50+");
+			for (auto it : allUsers) {
+				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
+					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
+					if (pPlayer->get_age_of_player() >= 7 && pPlayer->get_age_of_player() <= 18) {
+						agesSevenToEigtheen.push_back(pPlayer->get_age_of_player());
+					}
+					else if (pPlayer->get_age_of_player() >= 19 && pPlayer->get_age_of_player() <= 25) {
+						agesNineteenToTwentyfive.push_back(pPlayer->get_age_of_player());
+					}
+					else if (pPlayer->get_age_of_player() >= 26 && pPlayer->get_age_of_player() <= 35) {
+						agesTwentySixToThirtyfive.push_back(pPlayer->get_age_of_player());
+					}
+					else if (pPlayer->get_age_of_player() >= 36 && pPlayer->get_age_of_player() <= 46) {
+						agesThirtysixToFourtysix.push_back(pPlayer->get_age_of_player());
+					}
+					else if (pPlayer->get_age_of_player() >= 47) {
+						agesOverFourtyseven.push_back(pPlayer->get_age_of_player());
+					}
+				}
+			}
+			totalSize = agesSevenToEigtheen.size() + agesNineteenToTwentyfive.size() + agesTwentySixToThirtyfive.size() 
+				+ agesThirtysixToFourtysix.size() + agesOverFourtyseven.size();
 
+			percentageSevenToEigtheen = (static_cast<double>(agesSevenToEigtheen.size()) / static_cast<double>(totalSize)) * 100;
+			percentageNineteenToTwentyfive = (static_cast<double>(agesNineteenToTwentyfive.size()) / static_cast<double>(totalSize)) * 100;
+			percentageTwentysixToThirtyfive = (static_cast<double>(agesTwentySixToThirtyfive.size()) / static_cast<double>(totalSize)) * 100;
+			percentageThirtysixToFourtysix = (static_cast<double>(agesThirtysixToFourtysix.size()) / static_cast<double>(totalSize)) * 100;
+			percentageOverFourtyseven = (static_cast<double>(agesOverFourtyseven.size()) / static_cast<double>(totalSize)) * 100;
 
+			cout << "Age groups of players in percent: " << endl;
+			cout << "[ Group 1:  7-18 years ]: " << percentageSevenToEigtheen << "%" << endl;
+			cout << "[ Group 2: 19-25 years ]: " << percentageNineteenToTwentyfive << "%" << endl;
+			cout << "[ Group 3: 26-35 years ]: " << percentageTwentysixToThirtyfive << "%" << endl;
+			cout << "[ Group 1: 36-46 years ]: " << percentageThirtysixToFourtysix << "%" << endl;
+			cout << "[ Group 1: 47+   years ]: " << percentageOverFourtyseven << "%" << endl << endl;
 			break;
 		default: cout << "INVALID OPTION!\n"; break;
 		}
