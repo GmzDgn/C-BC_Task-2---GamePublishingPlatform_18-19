@@ -1,3 +1,3 @@
 1;Sims4;A simulation game;50;10;EpicGames;1;
-2;Fortnite;A simulation game;50;10;EpicGames;1;
-3;GTA;A simulation game;50;10;EpicGames;1;
+2;Fortnite;A simulation game;45;10;EpicGames;1;
+4;Zelda;A war game;23.000000;18;EpicGames;2;

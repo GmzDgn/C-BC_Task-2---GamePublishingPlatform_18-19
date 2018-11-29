@@ -20,8 +20,7 @@ using namespace std;
 //--
 // UserTypeId represents an identifier for the specific user type.
 //--
-enum class UserTypeId
-{
+enum class UserTypeId {
 	kInvalid = 0
 	, kPlayerUser
 	, kAdminUser
@@ -74,17 +73,25 @@ public:
 	const PlayerUser::MyGameList& get_game_list() const;
 	// you can get the current fund of the player
 	const double get_available_funds() const;
+	// getter for the purchased time
+	const string get_purchased_time() const;
+	// returns the age of the player
+	const int get_age_of_player() const;
+	// returns the list which has all records for the statistics
+	const list<string> get_records() const;
+	// returns the map. This map contains all purchased games from this user.
+	const map<Game::GameId, Game*> get_myGames() const;
+	// you can get a output of the games that the current player has.
+	void output_game_list();
 	// you can add funds
 	void add_funds();
-	// you can withdraw money from the fund
-	void withdraw_funds(const double val);
 	// you can add a game to the list
 	void add_game_to_list(Game* game);
-	// you can get a output of the games that the current player has
-	void output_game_list();
+	// pushes new recors to the list
+	void push_records(const string & game, const string & date, const string & time, const string & length);
 	// you can search a game by title
 	void search_game_by_title();
-
+	// you can search a game by age limit
 	void search_game_by_ageLimit();
 	// you can buy a game if your funds are sufficient
 	void buy_game();
@@ -92,28 +99,17 @@ public:
 	void play_game();
 	// you can gift another player with a game
 	void gift_another_player();
-
+	// when an user buys a game, this method sets the date of the purchased time.
 	void set_purchased_time(const string& timestemp);
-
-	const string get_purchased_time() const;
-
-	map<Game::GameId, Game*> get_myGames();
-
-	list<string> get_records();
-
-	void push_records(const string & game, const string & date, const string & time, const string & length);
-
-	const int get_age_of_player() const;
-
-	//	virtual ~PlayerUser();
+	// you can withdraw money from the fund
+	void withdraw_funds(const double val);
 
 private:
-	//GameList m_ownedGames; // List of owned games.
-	MyGameList m_myGames;
-	RecordList l_records;
+	MyGameList m_myGames; // List of owned games
+	RecordList l_records; // List of all records
 	double m_accountFunds = 0.0; // The players available funds.
-	int m_age;
-	string time;
+	int m_age; // Age of the player
+	string time; // time for timestemp
 };
 
 //--
@@ -137,26 +133,35 @@ public:
 	void remove_game();
 	// you can view game statistics
 	void view_statistics();
-
-	//	virtual ~AdminUser();
 };
 
+//--
+// Guest represents a system user.
+//--
 class Guest : public UserBase {
 public:
 	using UserBase::UserBase;
 	virtual const UserTypeId get_user_type() const override;
 };
 
+//--
+// GameStudio represents a system user.
+//--
 class GameStudio : public UserBase {
 public:
 	using GameList = list<Game>;
 	using UserBase::UserBase;
 	virtual const UserTypeId get_user_type() const override;
-	void set_version();
-	float const get_version(const string& gameId) const;
+	// add game to the list
 	void add_game_to_list(const Game& rGame);
+	// Sets a new version of the game
+	void set_version();
+	// Returns the version of the game
+	float const get_version(const string& gameId) const;
+	// return the game list
 	const list<Game> get_gameLIst() const;
+	// outputs the list
 	const void output_gameList() const;
 private:
-	GameList l_gameList;
+	GameList l_gameList; // In this list all games from the gamestudio is listet.
 };

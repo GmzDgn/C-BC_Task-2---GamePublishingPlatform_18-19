@@ -20,8 +20,7 @@ using namespace std;
 // DatabaseManager is the one central database for the whole system
 // In this example it has been designed using the singleton pattern.
 //--
-class DatabaseManager
-{
+class DatabaseManager {
 public:
 	// Singleton instance definition.
 	static DatabaseManager& instance();
@@ -38,15 +37,15 @@ public:
 	// Stores new users to the file.
 	void store_newUser(const UserBase::Username& username, const string& password, const string& email, const string& usertype, const int age);
 	// Stores new games to the file.
-	void store_newGame(const string& gameTitle, const string& description, const double gamePrice, const int rAgeLimit, const string& studio);
+	void store_newGame(const string& gameTitle, const string& description, const double gamePrice, const int ageLimit, const string& studio);
 	// Stores new purchased games to the file.
 	void store_purchased_game(PlayerUser* rPlayer, const Game* rGame);
 	// Stores the record of a played game (e.g. length of play) to the file.
-	void store_playedGame_records(PlayerUser* rPlayer, Game* rGame, const string& date, const double tLength);
+	void store_playedGame_records(PlayerUser* rPlayer, Game* rGame, const string& date, const double length);
 	// Modifies the game file (e.g. new description defined for a game).
 	void modify_game(Game*& pGame, const string& newPrice, const string& newDescription, const string& newVersion);
 	// Modifies the user file.
-	void modify_user(const string& username, const double newFund);
+	void modify_user(const UserBase::Username& username, const double newFund);
 	// deletes the game from the listOfUserGames file.
 	void delete_game_from_listOfUserGames(const string& gameId);
 	// deletes the particullary game from listOfGames file.
@@ -82,27 +81,22 @@ public:
 	// to lower the string.
 	string to_lower_string(const string& lowerString);
 	// iterating users using visitor pattern
-	template<typename Visitor> void visit_users(Visitor& func)
-	{
+	template<typename Visitor> void visit_users(Visitor& func) {
 		if (!m_users.empty()) {
 			for (auto it : m_users) { func(*it.second); }
 			cout << endl;
-		}
-		else {
+		} else {
 			cout << "There is no user in the list." << endl;
 		}
 	}
 	// iterating games using visitor pattern
-	template<typename Visitor> void visit_games(Visitor& func)
-	{
+	template<typename Visitor> void visit_games(Visitor& func) {
 		if (!m_games.empty()) {
 			for (auto it : m_games) { func(it.second); }
 		} else {
 			cout << "The list is empty. No games are defined yet." << endl;
 		}
 	}
-	// deletes a game from the file.
-//void delete_game_of_user(PlayerUser* rPlayer, Game*& rGame);
 
 private:
 	// Constructors are private for singleton pattern.f
@@ -110,14 +104,13 @@ private:
 	~DatabaseManager();
 
 private:
-	int gameIdCounter = 0; // Id counter for the games.
 	// Types
 	using UserContainer = map<UserBase::Username, UserBase*>;
 	using GameContainer = map<Game::GameId, Game>;
 	using GuestContainer = list<UserBase*>;
 
+	int gameIdCounter = 0; // Id counter for the games
 	UserContainer m_users; // Container for all users
 	GameContainer m_games; // Container for all games
 	GuestContainer l_guest; // List for all guests
 };
-

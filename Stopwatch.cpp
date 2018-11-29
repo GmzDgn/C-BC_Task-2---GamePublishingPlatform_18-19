@@ -1,8 +1,11 @@
+//C++ Boot Camp - Task 2 - 2018-19 
+//Name: Gamze Dogan
+//Student number: b8037358
 #include <windows.h>
 
-#ifndef hr_timer
+#ifndef hr_stopwatch
 #include "Stopwatch.h"
-#define hr_timer
+#define hr_stopwatch
 #endif
 
 double CStopWatch::LIToSecs(LARGE_INTEGER & L) {
@@ -22,7 +25,6 @@ void CStopWatch::startTimer() {
 void CStopWatch::stopTimer() {
 	QueryPerformanceCounter(&timer.stop);
 }
-
 
 double CStopWatch::getElapsedTime() {
 	LARGE_INTEGER time;

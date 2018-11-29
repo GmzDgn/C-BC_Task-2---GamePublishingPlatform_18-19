@@ -21,12 +21,13 @@ const string UserBase::get_username() const {
 const string UserBase::get_password() const {
 	return m_password; 
 }
-void UserBase::set_password(const string& val) {
-	m_password = val; 
-}
 
 const string UserBase::get_email() const { 
 	return m_email; 
+}
+
+void UserBase::set_password(const string& val) {
+	m_password = val;
 }
 
 void UserBase::set_email(const string& val) { 
@@ -66,11 +67,9 @@ void AdminUser::add_user() {
 	}
 	if (usertype == "a" || usertype == "admin" || usertype == "Admin") {
 		usertype = "admin";
-	}
-	else if(usertype == "p" || usertype == "player" || usertype == "Player"){
+	} else if(usertype == "p" || usertype == "player" || usertype == "Player"){
 		usertype = "player";
-	}
-	else {
+	} else {
 		usertype = "gamestudio";
 	}
 	if (usertype != "gamestudio") {
@@ -100,13 +99,13 @@ void AdminUser::add_game() {
 		getline(cin, desc);
 		DatabaseManager::instance().store_newGame(title, desc, price, stoi(ageLimit), pGamestudio->get_username());
 		cout << endl << "You have added the game '" << title << "' successfully!" << endl << endl;
+		pGamestudio = nullptr;
 	} else {
-		cout << "This gamestudio doesn't exist!";
+		cout << endl << "This gamestudio doesn't exist!" << endl;
 	}
 }
 
-void AdminUser::list_of_users() const
-{
+void AdminUser::list_of_users() const {
 	cout << endl << "All Users:" << endl;
 	auto userVisitorLambda = [](const UserBase& rUser) {
 		cout << rUser.get_username() << " " << rUser.get_email() << endl;
@@ -114,23 +113,20 @@ void AdminUser::list_of_users() const
 	DatabaseManager::instance().visit_users(userVisitorLambda);
 }
 
-void AdminUser::modify_game(Game*& game, const int option, const int gameId) {
+void AdminUser::modify_game(Game*& game, const int option, const Game::GameId gameId) {
 	string tmp;
-
 	if (option == 1) {
 		cout << "Change the description: ";
 		cin.ignore();
 		getline(cin, tmp);
 		game->set_desc(tmp);
 		DatabaseManager::instance().modify_game(game, "", tmp, "");
-	}
-	else {
+	} else {
 		cout << "Define a new price: ";
 		cin >> tmp;
 		game->set_price(stod(tmp));
 		DatabaseManager::instance().modify_game(game, tmp, "", "");
 	}
-
 }
 
 void AdminUser::remove_game() {
@@ -144,25 +140,27 @@ void AdminUser::remove_game() {
 
 void AdminUser::view_statistics() {
 	auto allUsers = DatabaseManager::instance().get_all_users();
+	auto allGames = DatabaseManager::instance().get_gameContainer();
 	bool isRecords = false;
+
 	cout << "(1) Statistic Of All Purchases\n";
 	cout << "(2) History Of The Played Games\n";
 	cout << "(3) Most Popular Game\n";
 	cout << "(4) Average Game Price\n";
-	cout << "(5) Show Statistics Of The Ages In Percent\n";
-
+	cout << "(5) Average Player Age\n";
+	cout << "(6) Show Statistics Of The Ages In Percent\n";
 	char option;
 	cin >> option;
 
 	if (!allUsers.empty()) {
 		string date, time, game, player, length;
+		int tmp, allPrices = 0, totalSize = 0;
 		list<Game> mostPurchasedGamesList, mostPlayedGamesList;
-		list<int> agesOfThePlayers, agesSevenToEigtheen, agesNineteenToTwentyfive, agesTwentySixToThirtyfive
-			, agesThirtysixToFourtysix, agesOverFourtyseven;
-		int tmp, allPrices = 0, averagePrice = 0, totalSize;
+		list<int> agesOfThePlayers, agesSevenToEigtheen, agesNineteenToTwentyfive
+				  , agesTwentySixToThirtyfive, agesThirtysixToFourtysix, agesOverFourtyseven;
 		double percentageSevenToEigtheen, percentageNineteenToTwentyfive
-			, percentageTwentysixToThirtyfive, percentageThirtysixToFourtysix, percentageOverFourtyseven;
-		auto allGames = DatabaseManager::instance().get_gameContainer();
+			, percentageTwentysixToThirtyfive, percentageThirtysixToFourtysix, percentageOverFourtyseven
+			, averagePrice = 0.0, averageAge = 0.0;
 
 		switch (option) {
 		case '1': 
@@ -172,7 +170,8 @@ void AdminUser::view_statistics() {
 					if (pPlayer->get_myGames().size() > 0) {
 						isRecords = true;
 						for (auto it : pPlayer->get_myGames()) {
-							cout << "Player '" << pPlayer->get_username() << "' has purchased '" << it.second->get_title() << "' on "
+							cout << "Player '" << pPlayer->get_username() << "' has purchased '" 
+								<< it.second->get_title() << "' on " 
 								<< pPlayer->get_purchased_time() << endl;
 						}
 					}
@@ -188,24 +187,28 @@ void AdminUser::view_statistics() {
 			for (auto it : allUsers) {
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
 					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
-					list<string> listRecords = pPlayer->get_records();
-					if (listRecords.size() > 0) {
-						isRecords = true;
-						list<string>::const_iterator it2 = listRecords.begin();
-						cout << "'" << pPlayer->get_username() << "' played '";
-						while (it2 != listRecords.end()) {
-							game = *it2;
-							cout << game << "' on ";
-							date = *(++it2);
-							cout << date << " at ";
-							time = *(++it2);
-							cout << time << ", ";
-							length = *(++it2);
-							cout << length << " seconds long.\n";
-							++it2;
+					if (pPlayer != nullptr) {
+						list<string> listRecords = pPlayer->get_records();
+						if (listRecords.size() > 0) {
+							isRecords = true;
+							list<string>::const_iterator it = listRecords.begin();
+							cout << "'" << pPlayer->get_username() << "' played '";
+							while (it != listRecords.end()) {
+								game = *it;
+								cout << game << "' on ";
+								date = *(++it);
+								cout << date << " at ";
+								time = *(++it);
+								cout << time << ", ";
+								length = *(++it);
+								cout << length << " seconds long.\n";
+								++it;
+							}
 						}
+						pPlayer = nullptr;
+					} else {
+						cerr << "Player not found: view_statistics()";
 					}
-					pPlayer = nullptr;
 				}
 			}
 			if (!isRecords) {
@@ -213,13 +216,12 @@ void AdminUser::view_statistics() {
 				isRecords = false;
 			}
 			break;
-
 		case '3':
 			cout << "(1) Most Purchased Game" << endl;
 			cout << "(2) Most Played Game" << endl;
-
 			char option;
 			cin >> option;
+
 			if (option == '1') {
 				auto it = allGames.begin();
 				tmp = it->second.get_counterPurchased();
@@ -268,8 +270,7 @@ void AdminUser::view_statistics() {
 				if (mostPlayedGamesList.empty()) {
 					cout << endl << "The most played game is: " << mostPlayedGame->second.get_title() << " ("
 						<< mostPlayedGame->second.get_counterPurchased() << " time(s))" << endl;
-				}
-				else {
+				} else {
 					cout << endl << "The most played games are with " << mostPlayedGame->second.get_counterPlayed() << " time(s):"
 						<< endl << "- " << mostPlayedGame->second.get_title() << endl;
 					for (auto it : mostPlayedGamesList) {
@@ -289,25 +290,41 @@ void AdminUser::view_statistics() {
 		case '5':
 			for (auto it : allUsers) {
 				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
-					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
-					if (pPlayer->get_age_of_player() >= 7 && pPlayer->get_age_of_player() <= 18) {
-						agesSevenToEigtheen.push_back(pPlayer->get_age_of_player());
-					}
-					else if (pPlayer->get_age_of_player() >= 19 && pPlayer->get_age_of_player() <= 25) {
-						agesNineteenToTwentyfive.push_back(pPlayer->get_age_of_player());
-					}
-					else if (pPlayer->get_age_of_player() >= 26 && pPlayer->get_age_of_player() <= 35) {
-						agesTwentySixToThirtyfive.push_back(pPlayer->get_age_of_player());
-					}
-					else if (pPlayer->get_age_of_player() >= 36 && pPlayer->get_age_of_player() <= 46) {
-						agesThirtysixToFourtysix.push_back(pPlayer->get_age_of_player());
-					}
-					else if (pPlayer->get_age_of_player() >= 47) {
-						agesOverFourtyseven.push_back(pPlayer->get_age_of_player());
-					}
+					auto pPlayer = dynamic_cast<PlayerUser*>(it.second);
+					averageAge += pPlayer->get_age_of_player();
+					pPlayer = nullptr;
 				}
 			}
-			totalSize = agesSevenToEigtheen.size() + agesNineteenToTwentyfive.size() + agesTwentySixToThirtyfive.size() 
+			averageAge = averageAge / allUsers.size();
+			cout << endl << "The average age is: " << averageAge << endl << endl;
+			break;
+		case '6':
+			for (auto it : allUsers) {
+				if (it.second->get_user_type() == UserTypeId::kPlayerUser) {
+					PlayerUser* pPlayer = dynamic_cast<PlayerUser*>(it.second);
+					if (pPlayer != nullptr) {
+						if (pPlayer->get_age_of_player() >= 7 && pPlayer->get_age_of_player() <= 18) {
+							agesSevenToEigtheen.push_back(pPlayer->get_age_of_player());
+						}
+						else if (pPlayer->get_age_of_player() >= 19 && pPlayer->get_age_of_player() <= 25) {
+							agesNineteenToTwentyfive.push_back(pPlayer->get_age_of_player());
+						}
+						else if (pPlayer->get_age_of_player() >= 26 && pPlayer->get_age_of_player() <= 35) {
+							agesTwentySixToThirtyfive.push_back(pPlayer->get_age_of_player());
+						}
+						else if (pPlayer->get_age_of_player() >= 36 && pPlayer->get_age_of_player() <= 46) {
+							agesThirtysixToFourtysix.push_back(pPlayer->get_age_of_player());
+						}
+						else if (pPlayer->get_age_of_player() >= 47) {
+							agesOverFourtyseven.push_back(pPlayer->get_age_of_player());
+						}
+						pPlayer = nullptr;
+					} else {
+						cerr << "Couldn't find player: view_statistics()";
+					}					
+				}
+			}
+			totalSize = agesSevenToEigtheen.size() + agesNineteenToTwentyfive.size() + agesTwentySixToThirtyfive.size()
 				+ agesThirtysixToFourtysix.size() + agesOverFourtyseven.size();
 
 			percentageSevenToEigtheen = (static_cast<double>(agesSevenToEigtheen.size()) / static_cast<double>(totalSize)) * 100;
@@ -334,7 +351,7 @@ void AdminUser::view_statistics() {
 
 //------------PlayerUser------------
 PlayerUser::PlayerUser(const Username& username, const string& password, const string& email, const int age, const double fund) 
-	: UserBase(username, password, email), m_age(age), m_accountFunds(fund){}
+	: UserBase(username, password, email), m_age(age), m_accountFunds(fund) {}
 
 const UserTypeId PlayerUser::get_user_type() const {
 	return UserTypeId::kPlayerUser;
@@ -342,6 +359,30 @@ const UserTypeId PlayerUser::get_user_type() const {
 
  const PlayerUser::MyGameList& PlayerUser::get_game_list() const {
 	return m_myGames;
+}
+
+const double PlayerUser::get_available_funds() const {
+	 return m_accountFunds;
+}
+
+const string PlayerUser::get_purchased_time() const {
+	return time;
+}
+
+const map<Game::GameId, Game*> PlayerUser::get_myGames() const {
+	return m_myGames;
+}
+
+const list<string> PlayerUser::get_records() const {
+	return l_records;
+}
+
+const int PlayerUser::get_age_of_player() const {
+	return m_age;
+}
+
+ void PlayerUser::set_purchased_time(const string& timestemp) {
+	 time = timestemp;
 }
 
 void PlayerUser::output_game_list() {
@@ -357,10 +398,6 @@ void PlayerUser::output_game_list() {
 	 }
 }
 
-const double PlayerUser::get_available_funds() const {
-	return m_accountFunds;
-}
-
 void PlayerUser::add_funds() {
 	cout << "Add funds: ";
 	string fund;
@@ -370,6 +407,10 @@ void PlayerUser::add_funds() {
 	cout << "FUNDS: " << get << endl;
 	DatabaseManager::instance().modify_user(get_username(), m_accountFunds);
 	cout << "You added " << fund << " in your wallet successfully! Current wallet: " << m_accountFunds << endl << endl;
+}
+
+void PlayerUser::add_game_to_list(Game* pGame) {
+	m_myGames.insert(make_pair(pGame->get_game_id(), pGame));
 }
 
 void PlayerUser::withdraw_funds(const double val) {
@@ -388,14 +429,17 @@ void PlayerUser::search_game_by_title() {
 	}
 	else {
 		cout << "Title: " << pGame->get_title() << " / Description: " << pGame->get_desc() << " / Price: " << pGame->get_price() << endl << endl;
+		pGame = nullptr;
 	}
 }
+
 void PlayerUser::search_game_by_ageLimit() {
 	cout << "Enter the age: ";
 	string age;
 	cin >> age;
 	DatabaseManager::instance().find_game_by_ageLimit(stoi(age));
 }
+
 void PlayerUser::buy_game() {
 	Game* pGame = nullptr;
 	double gamePrice = 0;
@@ -420,16 +464,13 @@ void PlayerUser::buy_game() {
 			} else {
 				cout << "Sorry you cannot purchase this game. You don't have enough money!" << endl << endl;
 			}
+			pGame = nullptr;
 		} else {
 			cin.ignore();
 			cout << "Sorry you cannot purchase this game. You are too young for this game." << endl << endl;
 
 		}
 	}
-}
-
-void PlayerUser::add_game_to_list(Game* pGame) {
-	m_myGames.insert(make_pair(pGame->get_game_id(), pGame));
 }
 
 void PlayerUser::play_game() {
@@ -444,7 +485,6 @@ void PlayerUser::play_game() {
 
 		CStopWatch stopwatch;
 		stopwatch.startTimer();
-
 		string date = DatabaseManager::instance().getDate();
 
 		cout << pGame->get_title() << " IS LAUNCHING..." << endl << endl;
@@ -452,8 +492,7 @@ void PlayerUser::play_game() {
 			cout << "(q) Quit game\n";
 			char option;
 			cin >> option;
-			switch (option)
-			{
+			switch (option)	{
 			case 'q':
 			{
 				stopwatch.stopTimer();
@@ -466,26 +505,23 @@ void PlayerUser::play_game() {
 			default:  cout << "INAVLID OPTION\n"; break;
 			}
 		}
-	}
-	else {
+		pGame = nullptr;
+	} else {
 		cout << "Your bag is empty" << endl << endl;
 	}
 }
+
 void PlayerUser::gift_another_player() {
 	cout << "Which player do you want to gift?" << endl;
 	string playerToGift, gameToGift;
-	//cin.ignore();
-	//getline(cin, playerToGift);
 	cin >> playerToGift;
 	PlayerUser* userToGift = dynamic_cast<PlayerUser*>(DatabaseManager::instance().find_user(playerToGift));
 	if (userToGift != nullptr) {
 		auto listOfUserToGift = userToGift->get_game_list();
-		if (userToGift != nullptr) {
-			cout << "Which game do you want to gift?" << endl;
-			cin >> gameToGift;
-			//getline(cin, gameToGift);
-			auto pGame = DatabaseManager::instance().find_game_by_title(gameToGift);
-
+		cout << "Which game do you want to gift?" << endl;
+		cin >> gameToGift;
+		auto pGame = DatabaseManager::instance().find_game_by_title(gameToGift);
+		if (pGame != nullptr) {
 			if (userToGift->get_age_of_player() >= pGame->get_ageLimit()) {
 				auto myGames = get_game_list();
 				for (map<Game::GameId, Game*> ::const_iterator it = myGames.begin(); it != myGames.end(); ++it) {
@@ -494,34 +530,21 @@ void PlayerUser::gift_another_player() {
 						DatabaseManager::instance().store_purchased_game(userToGift, pGame);
 						myGames.erase(it);
 						DatabaseManager::instance().delete_game_from_listOfUserGames(to_string(pGame->get_game_id()));
-						//DatabaseManager::instance().delete_game_of_user(this, pGame);
 						break;
 					}
 				}
 				cout << "You gave " + userToGift->get_username() + " the game: " + pGame->get_title() + ".";
-			}
-			else {
+			} else {
 				cout << endl << "You cannot gift this game. The age limit for this game is " << pGame->get_ageLimit() << " and '" << userToGift->get_username() << "' is under this age." << endl << endl;
 			}
+			pGame = nullptr;
 		} else {
-			cout << "This player doesn't exist!" << endl << endl;
+			cout << "Couldn't find game";
 		}
+		userToGift = nullptr;
 	} else {
 		cout << "This user doesn't exist!" << endl;
 	}
-}
-void PlayerUser::set_purchased_time(const string& timestemp) {
-	time = timestemp;
-}
-
-const string PlayerUser::get_purchased_time() const {
-	return time;
-}
-map<Game::GameId, Game*> PlayerUser::get_myGames() {
-	return m_myGames;
-}
-list<string> PlayerUser::get_records() {
-	return l_records;
 }
 
 void PlayerUser::push_records(const string & game, const string & date, const string & time, const string & length) {
@@ -530,11 +553,6 @@ void PlayerUser::push_records(const string & game, const string & date, const st
 	l_records.push_back(time);
 	l_records.push_back(length);
 }
-
-const int PlayerUser::get_age_of_player() const {
-	return m_age;
-}
-
 //------------PlayerUser------------
 
 
@@ -544,8 +562,19 @@ const UserTypeId Guest::get_user_type() const {
 }
 //------------Guest------------
 
+
+//------------GameStudio------------
 const UserTypeId GameStudio::get_user_type() const {
 	return UserTypeId::kGameStudioUser;
+}
+
+float const GameStudio::get_version(const string& gameId) const {
+	auto pGame = DatabaseManager::instance().find_game(stoi(gameId));
+	return pGame->get_version();
+}
+
+const list<Game> GameStudio::get_gameLIst() const {
+	return l_gameList;
 }
 
 void GameStudio::set_version() {
@@ -565,25 +594,17 @@ void GameStudio::set_version() {
 	else {
 		cout << "Couldn't find the game.";
 	}
-
-}
-
-float const GameStudio::get_version(const string& gameId) const {
-	auto pGame = DatabaseManager::instance().find_game(stoi(gameId));
-	return pGame->get_version();
 }
 
 void GameStudio::add_game_to_list(const Game& rGame) {
 	l_gameList.push_back(rGame);
 }
 
-const list<Game> GameStudio::get_gameLIst() const {
-	return l_gameList;
-}
-
 const void GameStudio::output_gameList() const {
-	cout << "Your games: " << endl;
+	cout << endl << "Your games: " << endl;
 	for (list<Game>::const_iterator it = l_gameList.begin(); it != l_gameList.end(); ++it) {
 		cout << "ID: " << it->get_game_id() << " / Title: " << it->get_title() << " / Description: " << it->get_desc() << " / Version: " << it->get_version() << endl;
 	}
+	cout << endl;
 }
+//------------GameStudio------------
